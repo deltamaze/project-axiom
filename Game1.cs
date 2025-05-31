@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using project_axiom.GameStates; // Ensure this using directive is present
 
 namespace project_axiom;
 
@@ -8,6 +9,14 @@ public class Game1 : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
+
+    private GameState _currentState;
+    private GameState _nextState;
+
+    public void ChangeState(GameState state)
+    {
+        _nextState = state;
+    }
 
     public Game1()
     {
@@ -18,7 +27,10 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
-        // TODO: Add your initialization logic here
+        // Set initial screen size (optional)
+        _graphics.PreferredBackBufferWidth = 1280;
+        _graphics.PreferredBackBufferHeight = 720;
+        _graphics.ApplyChanges();
 
         base.Initialize();
     }
@@ -27,24 +39,38 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // TODO: use this.Content to load your game content here
+        // Initialize and load the first state (Main Menu)
+        _currentState = new MainMenuState(this, _graphics.GraphicsDevice, Content);
+        _currentState.LoadContent();
     }
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
+        // Handle state transitioning
+        if (_nextState != null)
+        {
+            _currentState = _nextState;
+            _currentState.LoadContent(); // Load content for the new state
+            _nextState = null; // Clear the next state
+        }
 
-        // TODO: Add your update logic here
+        // Update the current state
+        _currentState.Update(gameTime);
+
+        // Call PostUpdate for any logic that needs to run after the main update (e.g., state changes)
+        _currentState.PostUpdate(gameTime);
+
+        // Global escape condition (optional, can be handled within states if preferred)
+        // if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+        //    Exit();
 
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
-
-        // TODO: Add your drawing code here
+        // The current state is responsible for clearing the screen and drawing
+        _currentState.Draw(gameTime, _spriteBatch);
 
         base.Draw(gameTime);
     }

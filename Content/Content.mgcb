@@ -1,6 +1,4 @@
-
 #----------------------------- Global Properties ----------------------------#
-
 /outputDir:bin/$(Platform)
 /intermediateDir:obj/$(Platform)
 /platform:DesktopGL
@@ -10,6 +8,9 @@
 
 #-------------------------------- References --------------------------------#
 
-
 #---------------------------------- Content ---------------------------------#
-
+#begin Fonts/DefaultFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:TextureFormat=Compressed
+#build Fonts/DefaultFont.spritefont
