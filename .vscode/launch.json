@@ -8,7 +8,7 @@
         "name": "C#: project_axiom Debug",
         "type": "dotnet",
         "request": "launch",
-        "projectPath": "${workspaceFolder}/project_axiom.csproj"
+        "projectPath": "${workspaceFolder}/project-axiom.csproj"
       }
     ],
   }
