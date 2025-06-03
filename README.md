@@ -129,19 +129,50 @@ Players choose one of three base classes, each with its own thematic focus, armo
 
 ### 6. Initial Development Iteration Plan (MVP Focus)
 
-1. **Project Setup:** Basic MonoGame project structure in Visual Studio Code.
-2. **Main Menu:** Implement a functional Main Menu with "Load Game" and "Quit" buttons.
-3. **Basic 3D Rendering:** Display a single white cube (player placeholder) in a 3D space with a simple camera.
-4. **Player Movement:** Implement WASD movement and mouse-look for the cube.
-5. **Character Creation (Placeholder):** A simple form to input a character name **and select a base class (Brawler, Ranger, or Spellcaster)**.
-6. **Training Grounds:**
-    - Spawn the player cube (with chosen class's resource bar) in a simple block-based environment (e.g., a flat ground plane with walls).
-    - Spawn several static "training dummy" cubes.
-    - Implement basic click-to-target functionality for dummies.
-    - Implement a placeholder 8-slot spell bar UI.
-    - Implement 1-2 very basic spell mechanics **specific to the chosen class** (e.g., a "Magic Missile" for Spellcaster, a "Slam" for Brawler, a "Multi-shot" for Ranger).
-    - Implement rudimentary health bars for dummies and player.
-    - Basic spell casting with class-specific resource cost and cooldown.
+1.  **Project Setup:** Basic MonoGame project structure in Visual Studio Code.
+2.  **Main Menu:** Implement a functional Main Menu with "Load Game" and "Quit" buttons.
+3.  **Basic 3D Rendering:** Display a single white cube (player placeholder) in a 3D space with a simple camera.
+4.  **Player Movement:** Implement WASD movement and mouse-look for the cube.
+5.  **Character Creation (Placeholder):** A simple form to input a character name and select a base class (**Brawler, Ranger, or Spellcaster**).
+6.  **Basic Environment Creation:**
+    * Create a simple flat ground plane.
+    * Add basic boundary walls to define the training area.
+    * Ensure the player cube (from step 6.1) spawns correctly on this ground plane.
+7.  **Static Training Dummy Placement:**
+    * Create a simple "training dummy" cube asset (can be a different color or slightly different size than the player cube).
+    * Manually place 2-3 static training dummy cubes at fixed positions within the environment.
+8.  **Player Resource Bar (Class-Specific):**
+    * Based on the class chosen in step 5, display a simple UI bar representing their primary resource (e.g., **Mana** for Spellcaster, **Rage** for Brawler, **Energy** for Ranger). For now, this can just be a colored rectangle.
+9.  **Click-to-Target System:**
+    * Implement functionality to detect when the player clicks on a training dummy.
+    * Visually indicate the currently targeted dummy (e.g., highlight it or show its name/health).
+10. **Placeholder Spell Bar UI:**
+    * Create a static UI element at the bottom of the screen with 8 empty slots to represent the spell bar. No functionality yet, just the visual representation.
+11. **Rudimentary Health System & Display:**
+    * Give the player cube a health value.
+    * Give each training dummy a health value.
+    * Display simple health bars above the player and targeted dummy (or all dummies). These can be basic colored rectangles.
+12. **Implement ONE Basic Spell/Attack (Brawler - "Slam"):**
+    * If **Brawler** is chosen: Design a simple melee-range "**Slam**" ability.
+    * When the ability is used (e.g., pressing '1'), if a dummy is targeted and in range, reduce the dummy's health.
+    * Implement a basic resource cost (**Rage**) for using "**Slam**."
+    * Implement a short cooldown for "**Slam**."
+13. **Implement ONE Basic Spell/Attack (Ranger - "Multi-shot"):**
+    * If **Ranger** is chosen: Design a simple ranged "**Multi-shot**" ability.
+    * When the ability is used, if a dummy is targeted, "fire" a projectile (can be a small cube for now) that reduces the dummy's health on impact.
+    * Implement a basic resource cost (**Energy**) for "**Multi-shot**."
+    * Implement a short cooldown for "**Multi-shot**."
+14. **Implement ONE Basic Spell/Attack (Spellcaster - "Magic Missile"):**
+    * If **Spellcaster** is chosen: Design a simple ranged "**Magic Missile**" ability.
+    * When the ability is used, if a dummy is targeted, "fire" a projectile that reduces the dummy's health on impact.
+    * Implement a basic resource cost (**Mana**) for "**Magic Missile**."
+    * Implement a short cooldown for "**Magic Missile**."
+15. **Basic "Death" State for Dummies:**
+    * When a dummy's health reaches zero, make it disappear or change appearance to indicate it's defeated.
+16. **(Optional) Dummy Respawn:**
+    * After a short delay, make defeated dummies reappear.
+17. **Basic Player "Death" (Placeholder):**
+    * If player health reaches zero, display a "You are defeated" message. No need for complex respawn logic yet.
 
 ---
 
