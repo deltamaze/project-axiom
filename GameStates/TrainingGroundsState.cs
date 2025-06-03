@@ -14,9 +14,16 @@ namespace project_axiom.GameStates
         private VertexBuffer _vertexBuffer;
         private IndexBuffer _indexBuffer;
 
-        // Camera properties
-        private Vector3 _cameraPosition = new Vector3(0f, 2f, 5f);
-        private Vector3 _cameraTarget = Vector3.Zero;
+        // Player movement properties
+        private Vector3 _playerPosition = Vector3.Zero;
+        private float _playerSpeed = 5.0f;
+        private float _playerRotationY = 0f; // Y-axis rotation for looking left/right
+        private float _playerRotationX = 0f; // X-axis rotation for looking up/down
+        private float _mouseSensitivity = 0.003f;
+
+        // Camera properties (now based on player position and rotation)
+        private Vector3 _cameraPosition;
+        private Vector3 _cameraTarget;
         private Vector3 _cameraUp = Vector3.Up;
         private Matrix _world = Matrix.Identity;
         private Matrix _view;
@@ -25,6 +32,7 @@ namespace project_axiom.GameStates
         // Input handling
         private KeyboardState _previousKeyboardState;
         private MouseState _previousMouseState;
+        private bool _isMouseCaptured = true;
 
         public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
             : base(game, graphicsDevice, content)
@@ -58,6 +66,10 @@ namespace project_axiom.GameStates
             // Initialize input states
             _previousKeyboardState = Keyboard.GetState();
             _previousMouseState = Mouse.GetState();
+
+            // Center the mouse cursor initially
+            Vector2 screenCenter = new Vector2(_graphicsDevice.Viewport.Width / 2f, _graphicsDevice.Viewport.Height / 2f);
+            Mouse.SetPosition((int)screenCenter.X, (int)screenCenter.Y);
         }
 
         private void CreateCube()
@@ -66,15 +78,15 @@ namespace project_axiom.GameStates
             _cubeVertices = new VertexPositionColor[8];
 
             // Front face vertices
-            _cubeVertices[0] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, 0.5f), Color.White);
-            _cubeVertices[1] = new VertexPositionColor(new Vector3(0.5f, -0.5f, 0.5f), Color.White);
-            _cubeVertices[2] = new VertexPositionColor(new Vector3(0.5f, 0.5f, 0.5f), Color.White);
-            _cubeVertices[3] = new VertexPositionColor(new Vector3(-0.5f, 0.5f, 0.5f), Color.White);
+            _cubeVertices[0] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, 0.5f), Color.Red);
+            _cubeVertices[1] = new VertexPositionColor(new Vector3(0.5f, -0.5f, 0.5f), Color.Green);
+            _cubeVertices[2] = new VertexPositionColor(new Vector3(0.5f, 0.5f, 0.5f), Color.Blue);
+            _cubeVertices[3] = new VertexPositionColor(new Vector3(-0.5f, 0.5f, 0.5f), Color.Yellow);
 
             // Back face vertices
-            _cubeVertices[4] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, -0.5f), Color.White);
-            _cubeVertices[5] = new VertexPositionColor(new Vector3(0.5f, -0.5f, -0.5f), Color.White);
-            _cubeVertices[6] = new VertexPositionColor(new Vector3(0.5f, 0.5f, -0.5f), Color.White);
+            _cubeVertices[4] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, -0.5f), Color.Purple);
+            _cubeVertices[5] = new VertexPositionColor(new Vector3(0.5f, -0.5f, -0.5f), Color.Orange);
+            _cubeVertices[6] = new VertexPositionColor(new Vector3(0.5f, 0.5f, -0.5f), Color.Cyan);
             _cubeVertices[7] = new VertexPositionColor(new Vector3(-0.5f, 0.5f, -0.5f), Color.White);
 
             // Define the indices for the cube faces (2 triangles per face)
@@ -107,19 +119,84 @@ namespace project_axiom.GameStates
                 return;
             }
 
-            // Basic camera rotation around the cube for now
-            float time = (float)gameTime.TotalGameTime.TotalSeconds;
-            _cameraPosition = new Vector3(
-                (float)Math.Sin(time * 0.5f) * 5f,
-                2f,
-                (float)Math.Cos(time * 0.5f) * 5f);
+            // Handle mouse capture toggle (for debugging - press M to toggle)
+            if (currentKeyboardState.IsKeyDown(Keys.M) && !_previousKeyboardState.IsKeyDown(Keys.M))
+            {
+                _isMouseCaptured = !_isMouseCaptured;
+            }
 
-            // Update view matrix
-            _view = Matrix.CreateLookAt(_cameraPosition, _cameraTarget, _cameraUp);
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            // Handle mouse look (only if mouse is captured)
+            if (_isMouseCaptured)
+            {
+                Vector2 screenCenter = new Vector2(_graphicsDevice.Viewport.Width / 2f, _graphicsDevice.Viewport.Height / 2f);
+                Vector2 mouseDelta = new Vector2(currentMouseState.X - screenCenter.X, currentMouseState.Y - screenCenter.Y);
+
+                // Apply mouse sensitivity and update rotation
+                _playerRotationY -= mouseDelta.X * _mouseSensitivity; // Horizontal mouse movement rotates around Y-axis
+                _playerRotationX -= mouseDelta.Y * _mouseSensitivity; // Vertical mouse movement rotates around X-axis
+
+                // Clamp vertical rotation to prevent over-rotation
+                _playerRotationX = MathHelper.Clamp(_playerRotationX, -MathHelper.PiOver2 + 0.1f, MathHelper.PiOver2 - 0.1f);
+
+                // Reset mouse to center of screen
+                Mouse.SetPosition((int)screenCenter.X, (int)screenCenter.Y);
+            }
+
+            // Handle WASD movement
+            Vector3 moveDirection = Vector3.Zero;
+
+            if (currentKeyboardState.IsKeyDown(Keys.W))
+                moveDirection += Vector3.Forward;
+            if (currentKeyboardState.IsKeyDown(Keys.S))
+                moveDirection += Vector3.Backward;
+            if (currentKeyboardState.IsKeyDown(Keys.A))
+                moveDirection += Vector3.Left;
+            if (currentKeyboardState.IsKeyDown(Keys.D))
+                moveDirection += Vector3.Right;
+            if (currentKeyboardState.IsKeyDown(Keys.Space))
+                moveDirection += Vector3.Up;
+            if (currentKeyboardState.IsKeyDown(Keys.LeftShift))
+                moveDirection += Vector3.Down;
+
+            // Normalize movement direction to prevent faster diagonal movement
+            if (moveDirection.Length() > 0)
+            {
+                moveDirection.Normalize();
+                
+                // Transform movement direction based on player's Y rotation (horizontal looking)
+                Matrix rotationMatrix = Matrix.CreateRotationY(_playerRotationY);
+                moveDirection = Vector3.Transform(moveDirection, rotationMatrix);
+                
+                // Apply movement
+                _playerPosition += moveDirection * _playerSpeed * deltaTime;
+            }
+
+            // Update camera based on player position and rotation
+            UpdateCamera();
 
             // Store previous input states
             _previousKeyboardState = currentKeyboardState;
             _previousMouseState = currentMouseState;
+        }
+
+        private void UpdateCamera()
+        {
+            // Create rotation matrix from player's rotation
+            Matrix rotationMatrix = Matrix.CreateRotationX(_playerRotationX) * Matrix.CreateRotationY(_playerRotationY);
+            
+            // Calculate camera position (offset from player position for third-person view)
+            // For first-person, you'd set _cameraPosition = _playerPosition
+            Vector3 cameraOffset = Vector3.Transform(new Vector3(0, 1, 3), rotationMatrix);
+            _cameraPosition = _playerPosition + cameraOffset;
+            
+            // Calculate what the camera is looking at
+            Vector3 forwardDirection = Vector3.Transform(Vector3.Forward, rotationMatrix);
+            _cameraTarget = _playerPosition + forwardDirection;
+
+            // Update view matrix
+            _view = Matrix.CreateLookAt(_cameraPosition, _cameraTarget, _cameraUp);
         }
 
         public override void PostUpdate(GameTime gameTime)
@@ -140,6 +217,9 @@ namespace project_axiom.GameStates
             // Set vertex and index buffers
             _graphicsDevice.SetVertexBuffer(_vertexBuffer);
             _graphicsDevice.Indices = _indexBuffer;
+
+            // Position the cube at the player's position
+            _world = Matrix.CreateTranslation(_playerPosition);
 
             // Configure the BasicEffect
             _basicEffect.World = _world;
@@ -162,9 +242,17 @@ namespace project_axiom.GameStates
             // Draw UI text (instructions)
             spriteBatch.Begin();
             spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
-                "Training Grounds - Press ESC to return to Main Menu", 
+                "Training Grounds - WASD to move, Mouse to look around", 
                 new Vector2(10, 10), 
                 Color.White);
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
+                "Space/Shift for up/down, M to toggle mouse capture, ESC to return to menu", 
+                new Vector2(10, 30), 
+                Color.White);
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
+                $"Position: X:{_playerPosition.X:F1} Y:{_playerPosition.Y:F1} Z:{_playerPosition.Z:F1}", 
+                new Vector2(10, 60), 
+                Color.Yellow);
             spriteBatch.End();
 
             // Reset graphics device state after SpriteBatch
