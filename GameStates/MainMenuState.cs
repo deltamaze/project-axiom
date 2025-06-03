@@ -56,9 +56,8 @@ namespace project_axiom.GameStates
         private void LoadGameButton_Click(object sender, System.EventArgs e)
         {
             System.Diagnostics.Debug.WriteLine("Load Game Clicked!"); // Use System.Diagnostics.Debug for output
-            // TODO: Transition to Load Game screen or Character Creation (as per README 6.5)
-            // As a placeholder, for now, this doesn't change state.
-            // Example: _game.ChangeState(new CharacterCreationState(_game, _graphicsDevice, _content));
+            // Transition to Training Grounds (3D rendering demo)
+            _game.ChangeState(new TrainingGroundsState(_game, _graphicsDevice, _content));
         }
 
         private void QuitButton_Click(object sender, System.EventArgs e)
