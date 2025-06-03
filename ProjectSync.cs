@@ -311,6 +311,10 @@ async Task<string> GenerateProjectSyncAsync(string directoryPath)
         return "No files matching the specified extensions were found in accessible directories.";
     }
 
+    outputLines.Add(
+        @"Hello, Below I am pasting the Entire codebase and Folder directory of my Mono Game Project.
+        If you look at the Readme File, this is the the Game Design Document. 
+        The current focus is on Section 6.2");
     outputLines.Add(RepeatString("=", 80));
     outputLines.Add("DIRECTORY STRUCTURE");
     outputLines.Add(RepeatString("=", 80));
