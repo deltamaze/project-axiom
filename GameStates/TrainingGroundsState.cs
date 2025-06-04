@@ -14,6 +14,9 @@ namespace project_axiom.GameStates
         private VertexBuffer _vertexBuffer;
         private IndexBuffer _indexBuffer;
 
+        // Character information
+        private Character _character;
+
         // Player movement properties
         private Vector3 _playerPosition = Vector3.Zero;
         private float _playerSpeed = 5.0f;
@@ -34,8 +37,16 @@ namespace project_axiom.GameStates
         private MouseState _previousMouseState;
         private bool _isMouseCaptured = true;
 
-        public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
+        // Constructor with character parameter
+        public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, Character character)
             : base(game, graphicsDevice, content)
+        {
+            _character = character ?? new Character("Default", CharacterClass.Brawler);
+        }
+
+        // Fallback constructor for backward compatibility
+        public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
+            : this(game, graphicsDevice, content, new Character("Default", CharacterClass.Brawler))
         {
         }
 
@@ -70,24 +81,30 @@ namespace project_axiom.GameStates
             // Center the mouse cursor initially
             Vector2 screenCenter = new Vector2(_graphicsDevice.Viewport.Width / 2f, _graphicsDevice.Viewport.Height / 2f);
             Mouse.SetPosition((int)screenCenter.X, (int)screenCenter.Y);
+
+            // Log character entry into training grounds
+            System.Diagnostics.Debug.WriteLine($"Character {_character.Name} ({_character.Class}) entered Training Grounds");
         }
 
         private void CreateCube()
         {
-            // Define the 8 vertices of a cube
+            // Define the 8 vertices of a cube - color based on character class
+            Color primaryColor = GetClassColor();
+            Color secondaryColor = Color.White;
+
             _cubeVertices = new VertexPositionColor[8];
 
             // Front face vertices
-            _cubeVertices[0] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, 0.5f), Color.Red);
-            _cubeVertices[1] = new VertexPositionColor(new Vector3(0.5f, -0.5f, 0.5f), Color.Green);
-            _cubeVertices[2] = new VertexPositionColor(new Vector3(0.5f, 0.5f, 0.5f), Color.Blue);
-            _cubeVertices[3] = new VertexPositionColor(new Vector3(-0.5f, 0.5f, 0.5f), Color.Yellow);
+            _cubeVertices[0] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, 0.5f), primaryColor);
+            _cubeVertices[1] = new VertexPositionColor(new Vector3(0.5f, -0.5f, 0.5f), secondaryColor);
+            _cubeVertices[2] = new VertexPositionColor(new Vector3(0.5f, 0.5f, 0.5f), primaryColor);
+            _cubeVertices[3] = new VertexPositionColor(new Vector3(-0.5f, 0.5f, 0.5f), secondaryColor);
 
             // Back face vertices
-            _cubeVertices[4] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, -0.5f), Color.Purple);
-            _cubeVertices[5] = new VertexPositionColor(new Vector3(0.5f, -0.5f, -0.5f), Color.Orange);
-            _cubeVertices[6] = new VertexPositionColor(new Vector3(0.5f, 0.5f, -0.5f), Color.Cyan);
-            _cubeVertices[7] = new VertexPositionColor(new Vector3(-0.5f, 0.5f, -0.5f), Color.White);
+            _cubeVertices[4] = new VertexPositionColor(new Vector3(-0.5f, -0.5f, -0.5f), secondaryColor);
+            _cubeVertices[5] = new VertexPositionColor(new Vector3(0.5f, -0.5f, -0.5f), primaryColor);
+            _cubeVertices[6] = new VertexPositionColor(new Vector3(0.5f, 0.5f, -0.5f), secondaryColor);
+            _cubeVertices[7] = new VertexPositionColor(new Vector3(-0.5f, 0.5f, -0.5f), primaryColor);
 
             // Define the indices for the cube faces (2 triangles per face)
             _cubeIndices = new short[]
@@ -105,6 +122,21 @@ namespace project_axiom.GameStates
                 // Bottom face
                 4, 5, 1, 4, 1, 0
             };
+        }
+
+        private Color GetClassColor()
+        {
+            switch (_character.Class)
+            {
+                case CharacterClass.Brawler:
+                    return Color.Red;
+                case CharacterClass.Ranger:
+                    return Color.Green;
+                case CharacterClass.Spellcaster:
+                    return Color.Blue;
+                default:
+                    return Color.Gray;
+            }
         }
 
         public override void Update(GameTime gameTime)
@@ -144,7 +176,7 @@ namespace project_axiom.GameStates
                 Mouse.SetPosition((int)screenCenter.X, (int)screenCenter.Y);
             }
 
-            // Handle WASD movement
+            // Handle WASD movement with class-specific speed modifications
             Vector3 moveDirection = Vector3.Zero;
 
             if (currentKeyboardState.IsKeyDown(Keys.W))
@@ -169,8 +201,11 @@ namespace project_axiom.GameStates
                 Matrix rotationMatrix = Matrix.CreateRotationY(_playerRotationY);
                 moveDirection = Vector3.Transform(moveDirection, rotationMatrix);
                 
+                // Apply class-specific movement speed
+                float classSpeedModifier = GetClassSpeedModifier();
+                
                 // Apply movement
-                _playerPosition += moveDirection * _playerSpeed * deltaTime;
+                _playerPosition += moveDirection * _playerSpeed * classSpeedModifier * deltaTime;
             }
 
             // Update camera based on player position and rotation
@@ -179,6 +214,21 @@ namespace project_axiom.GameStates
             // Store previous input states
             _previousKeyboardState = currentKeyboardState;
             _previousMouseState = currentMouseState;
+        }
+
+        private float GetClassSpeedModifier()
+        {
+            switch (_character.Class)
+            {
+                case CharacterClass.Brawler:
+                    return 0.8f; // Slower due to heavy armor
+                case CharacterClass.Ranger:
+                    return 1.2f; // Faster due to agility
+                case CharacterClass.Spellcaster:
+                    return 1.0f; // Normal speed
+                default:
+                    return 1.0f;
+            }
         }
 
         private void UpdateCamera()
@@ -239,25 +289,63 @@ namespace project_axiom.GameStates
                     _cubeIndices.Length / 3);
             }
 
-            // Draw UI text (instructions)
+            // Draw UI text (instructions and character info)
             spriteBatch.Begin();
+            
+            // Character information
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
+                $"Character: {_character.Name} ({_character.Class})", 
+                new Vector2(10, 10), 
+                Color.White);
+            
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
+                $"Health: {_character.MaxHealth} | {_character.ResourceType}: {_character.MaxResource}", 
+                new Vector2(10, 30), 
+                Color.LightBlue);
+            
+            // Training instructions
             spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
                 "Training Grounds - WASD to move, Mouse to look around", 
-                new Vector2(10, 10), 
+                new Vector2(10, 60), 
                 Color.White);
             spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
                 "Space/Shift for up/down, M to toggle mouse capture, ESC to return to menu", 
-                new Vector2(10, 30), 
+                new Vector2(10, 80), 
                 Color.White);
+                
+            // Position information
             spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
                 $"Position: X:{_playerPosition.X:F1} Y:{_playerPosition.Y:F1} Z:{_playerPosition.Z:F1}", 
-                new Vector2(10, 60), 
+                new Vector2(10, 110), 
                 Color.Yellow);
+                
+            // Class-specific tip
+            string classTip = GetClassTip();
+            spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
+                classTip, 
+                new Vector2(10, 130), 
+                GetClassColor());
+                
             spriteBatch.End();
 
             // Reset graphics device state after SpriteBatch
             _graphicsDevice.BlendState = BlendState.Opaque;
             _graphicsDevice.DepthStencilState = DepthStencilState.Default;
+        }
+
+        private string GetClassTip()
+        {
+            switch (_character.Class)
+            {
+                case CharacterClass.Brawler:
+                    return "Tip: Brawlers are tough but slower. Get close to enemies!";
+                case CharacterClass.Ranger:
+                    return "Tip: Rangers are fast and agile. Keep your distance!";
+                case CharacterClass.Spellcaster:
+                    return "Tip: Spellcasters have powerful magic. Manage your mana wisely!";
+                default:
+                    return "";
+            }
         }
     }
 }
