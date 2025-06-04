@@ -10,6 +10,7 @@ namespace project_axiom.GameStates
     {
         private List<Button> _buttons;
         private SpriteFont _buttonFont;
+        private SpriteFont _titleFont;
         // private Texture2D _buttonTexture; // Optional: if you create a button background image
 
         public MainMenuState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
@@ -20,16 +21,18 @@ namespace project_axiom.GameStates
         public override void LoadContent()
         {
             _buttonFont = _content.Load<SpriteFont>("Fonts/DefaultFont");
+            _titleFont = _buttonFont; // Using same font for now, can be different later
             // _buttonTexture = _content.Load<Texture2D>("Path/To/Your/ButtonTexture"); // If you have one
 
-            var loadGameButton = new Button(_buttonFont, "Load Game" /*, _buttonTexture (optional) */)
+            // Updated button - now goes to Character Creation instead of directly to Training Grounds
+            var newGameButton = new Button(_buttonFont, "New Game" /*, _buttonTexture (optional) */)
             {
                 Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 200),
                 PenColour = Color.AntiqueWhite, // Example text color
-                BackgroundColour = new Color(50,50,100), // Example button bg color
-                BackgroundHoverColour = new Color(80,80,150) // Example button bg hover color
+                BackgroundColour = new Color(50,80,50), // Green for new game
+                BackgroundHoverColour = new Color(70,100,70) // Brighter green on hover
             };
-            loadGameButton.Click += LoadGameButton_Click;
+            newGameButton.Click += NewGameButton_Click;
 
             var quitButton = new Button(_buttonFont, "Quit" /*, _buttonTexture (optional) */)
             {
@@ -42,7 +45,7 @@ namespace project_axiom.GameStates
 
             _buttons = new List<Button>()
             {
-                loadGameButton,
+                newGameButton,
                 quitButton,
             };
 
@@ -53,11 +56,11 @@ namespace project_axiom.GameStates
             }
         }
 
-        private void LoadGameButton_Click(object sender, System.EventArgs e)
+        private void NewGameButton_Click(object sender, System.EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("Load Game Clicked!"); // Use System.Diagnostics.Debug for output
-            // Transition to Training Grounds (3D rendering demo)
-            _game.ChangeState(new TrainingGroundsState(_game, _graphicsDevice, _content));
+            System.Diagnostics.Debug.WriteLine("New Game Clicked!"); // Use System.Diagnostics.Debug for output
+            // Transition to Character Creation instead of directly to Training Grounds
+            _game.ChangeState(new CharacterCreationState(_game, _graphicsDevice, _content));
         }
 
         private void QuitButton_Click(object sender, System.EventArgs e)
@@ -82,8 +85,23 @@ namespace project_axiom.GameStates
             _graphicsDevice.Clear(new Color(20, 20, 40)); // Dark blue background for main menu
 
             spriteBatch.Begin();
+
+            // Draw game title
+            string gameTitle = "Block Brawlers";
+            var titleSize = _titleFont.MeasureString(gameTitle);
+            var titlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (titleSize.X / 2f), 100);
+            spriteBatch.DrawString(_titleFont, gameTitle, titlePosition, Color.White);
+
+            // Draw subtitle
+            string subtitle = "Choose your class and enter the arena!";
+            var subtitleSize = _buttonFont.MeasureString(subtitle);
+            var subtitlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (subtitleSize.X / 2f), 140);
+            spriteBatch.DrawString(_buttonFont, subtitle, subtitlePosition, Color.LightGray);
+
+            // Draw buttons
             foreach (var button in _buttons)
                 button.Draw(spriteBatch);
+
             spriteBatch.End();
         }
     }
