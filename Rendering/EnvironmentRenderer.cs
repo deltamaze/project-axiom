@@ -83,8 +83,6 @@ public class EnvironmentRenderer
           PrimitiveType.TriangleList,
           0,
           0,
-          _groundVertices.Length,
-          0,
           _groundIndices.Length / 3);
     }
   }
@@ -104,8 +102,6 @@ public class EnvironmentRenderer
       _graphicsDevice.DrawIndexedPrimitives(
           PrimitiveType.TriangleList,
           0,
-          0,
-          _wallVertices.Length,
           0,
           _wallIndices.Length / 3);
     }

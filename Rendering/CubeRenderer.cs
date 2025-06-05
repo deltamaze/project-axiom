@@ -56,8 +56,6 @@ public class CubeRenderer
           PrimitiveType.TriangleList,
           0,
           0,
-          _vertices.Length,
-          0,
           _indices.Length / 3);
     }
   }
