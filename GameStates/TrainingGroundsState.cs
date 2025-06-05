@@ -36,9 +36,11 @@ namespace project_axiom.GameStates
         private const float WALL_HEIGHT = 5f;
         private const float WALL_THICKNESS = 1f;
         private const float GROUND_Y = 0f; // Ground level
+        private const float WALL_FOUNDATION_DEPTH = 0.05f; // How deep walls sink below ground
+        private const float PLAYER_GROUND_OFFSET = 0.51f; // Small offset above ground to prevent z-fighting
 
         // Player movement properties
-        private Vector3 _playerPosition = new Vector3(0, GROUND_Y + 0.5f, 0); // Start on ground
+        private Vector3 _playerPosition = new Vector3(0, GROUND_Y + PLAYER_GROUND_OFFSET, 0); // Start slightly above ground
         private float _playerSpeed = 5.0f;
         private float _playerRotationY = 0f;
         private float _playerRotationX = 0f;
@@ -115,6 +117,7 @@ namespace project_axiom.GameStates
 
             System.Diagnostics.Debug.WriteLine($"Character {_character.Name} ({_character.Class}) entered Training Grounds");
             System.Diagnostics.Debug.WriteLine($"Training area: {GROUND_SIZE}x{GROUND_SIZE} units, Wall height: {WALL_HEIGHT} units");
+            System.Diagnostics.Debug.WriteLine($"Z-fighting prevention: Player offset {PLAYER_GROUND_OFFSET}, Wall foundation depth {WALL_FOUNDATION_DEPTH}");
         }
 
         private void CreatePlayerCube()
@@ -190,27 +193,27 @@ namespace project_axiom.GameStates
 
             // North Wall (positive Z)
             CreateWallVertices(
-                new Vector3(-halfSize - halfThickness, GROUND_Y, halfSize - halfThickness),
-                new Vector3(halfSize + halfThickness, GROUND_Y, halfSize + halfThickness),
-                WALL_HEIGHT, wallColor, ref vertexIndex);
+                new Vector3(-halfSize - halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, halfSize - halfThickness),
+                new Vector3(halfSize + halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, halfSize + halfThickness),
+                WALL_HEIGHT + WALL_FOUNDATION_DEPTH, wallColor, ref vertexIndex);
 
             // South Wall (negative Z)
             CreateWallVertices(
-                new Vector3(-halfSize - halfThickness, GROUND_Y, -halfSize - halfThickness),
-                new Vector3(halfSize + halfThickness, GROUND_Y, -halfSize + halfThickness),
-                WALL_HEIGHT, wallColor, ref vertexIndex);
+                new Vector3(-halfSize - halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, -halfSize - halfThickness),
+                new Vector3(halfSize + halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, -halfSize + halfThickness),
+                WALL_HEIGHT + WALL_FOUNDATION_DEPTH, wallColor, ref vertexIndex);
 
             // East Wall (positive X)
             CreateWallVertices(
-                new Vector3(halfSize - halfThickness, GROUND_Y, -halfSize - halfThickness),
-                new Vector3(halfSize + halfThickness, GROUND_Y, halfSize + halfThickness),
-                WALL_HEIGHT, wallColor, ref vertexIndex);
+                new Vector3(halfSize - halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, -halfSize - halfThickness),
+                new Vector3(halfSize + halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, halfSize + halfThickness),
+                WALL_HEIGHT + WALL_FOUNDATION_DEPTH, wallColor, ref vertexIndex);
 
             // West Wall (negative X)
             CreateWallVertices(
-                new Vector3(-halfSize - halfThickness, GROUND_Y, -halfSize - halfThickness),
-                new Vector3(-halfSize + halfThickness, GROUND_Y, halfSize + halfThickness),
-                WALL_HEIGHT, wallColor, ref vertexIndex);
+                new Vector3(-halfSize - halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, -halfSize - halfThickness),
+                new Vector3(-halfSize + halfThickness, GROUND_Y - WALL_FOUNDATION_DEPTH, halfSize + halfThickness),
+                WALL_HEIGHT + WALL_FOUNDATION_DEPTH, wallColor, ref vertexIndex);
 
             // Create indices for all 4 walls (each wall uses the standard cube indices pattern)
             _wallIndices = new short[144]; // 36 indices per wall * 4 walls
@@ -352,8 +355,8 @@ namespace project_axiom.GameStates
             newPosition.X = MathHelper.Clamp(newPosition.X, -halfSize + playerRadius, halfSize - playerRadius);
             newPosition.Z = MathHelper.Clamp(newPosition.Z, -halfSize + playerRadius, halfSize - playerRadius);
             
-            // Keep player above ground level
-            newPosition.Y = Math.Max(newPosition.Y, GROUND_Y + playerRadius);
+            // Keep player above ground level (with small offset to prevent z-fighting)
+            newPosition.Y = Math.Max(newPosition.Y, GROUND_Y + PLAYER_GROUND_OFFSET);
 
             return newPosition;
         }
@@ -493,7 +496,7 @@ namespace project_axiom.GameStates
 
             // Environment status
             spriteBatch.DrawString(_content.Load<SpriteFont>("Fonts/DefaultFont"), 
-                "Environment: Ground plane and boundary walls active", 
+                "Environment: Ground plane and boundary walls active (z-fighting resolved)", 
                 new Vector2(10, 150), 
                 Color.LightGreen);
                 
