@@ -1,4 +1,3 @@
-
 namespace project_axiom.GameStates;
 
 public class TrainingGroundsState : GameState
@@ -7,6 +6,7 @@ public class TrainingGroundsState : GameState
     private BasicEffect _basicEffect;
     private CubeRenderer _cubeRenderer;
     private EnvironmentRenderer _environmentRenderer;
+    private TrainingDummyRenderer _trainingDummyRenderer;
 
     // Input and camera components
     private PlayerController _playerController;
@@ -14,6 +14,9 @@ public class TrainingGroundsState : GameState
 
     // Character information
     private Character _character;
+
+    // Training dummies
+    private List<TrainingDummy> _trainingDummies;
 
     // UI font
     private SpriteFont _font;
@@ -43,8 +46,12 @@ public class TrainingGroundsState : GameState
         // Initialize input and camera components
         InitializeInputAndCamera();
 
+        // Initialize training dummies
+        InitializeTrainingDummies();
+
         System.Diagnostics.Debug.WriteLine($"Character {_character.Name} ({_character.Class}) entered Training Grounds");
         System.Diagnostics.Debug.WriteLine($"Training area: {GeometryBuilder.GROUND_SIZE}x{GeometryBuilder.GROUND_SIZE} units, Wall height: {GeometryBuilder.WALL_HEIGHT} units");
+        System.Diagnostics.Debug.WriteLine($"Training dummies placed: {_trainingDummies.Count}");
     }
 
     /// <summary>
@@ -60,6 +67,7 @@ public class TrainingGroundsState : GameState
         // Initialize renderers
         _cubeRenderer = new CubeRenderer(_graphicsDevice, _character.Class);
         _environmentRenderer = new EnvironmentRenderer(_graphicsDevice);
+        _trainingDummyRenderer = new TrainingDummyRenderer(_graphicsDevice, _font);
     }
 
     /// <summary>
@@ -73,6 +81,30 @@ public class TrainingGroundsState : GameState
         // Initialize player controller with starting position
         Vector3 startPosition = new Vector3(0, GeometryBuilder.GROUND_Y + PLAYER_GROUND_OFFSET, 0);
         _playerController = new PlayerController(_graphicsDevice, _character, startPosition);
+    }
+
+    /// <summary>
+    /// Initialize training dummies at predefined positions
+    /// </summary>
+    private void InitializeTrainingDummies()
+    {
+        _trainingDummies = new List<TrainingDummy>();
+        
+        // Get predefined positions from GeometryBuilder
+        Vector3[] dummyPositions = GeometryBuilder.GetTrainingDummyPositions();
+        
+        // Create training dummies at each position
+        for (int i = 0; i < dummyPositions.Length; i++)
+        {
+            var dummy = new TrainingDummy(dummyPositions[i], $"Dummy {i + 1}");
+            _trainingDummies.Add(dummy);
+        }
+
+        System.Diagnostics.Debug.WriteLine($"Initialized {_trainingDummies.Count} training dummies");
+        foreach (var dummy in _trainingDummies)
+        {
+            System.Diagnostics.Debug.WriteLine($"  {dummy.Name} at position {dummy.Position}");
+        }
     }
 
     public override void Update(GameTime gameTime)
@@ -96,6 +128,29 @@ public class TrainingGroundsState : GameState
         // Update BasicEffect matrices
         _basicEffect.View = _cameraController.View;
         _basicEffect.Projection = _cameraController.Projection;
+
+        // Update training dummies (placeholder for future logic)
+        UpdateTrainingDummies(gameTime);
+    }
+
+    /// <summary>
+    /// Update training dummy logic (placeholder for future expansion)
+    /// </summary>
+    private void UpdateTrainingDummies(GameTime gameTime)
+    {
+        // For now, training dummies are static
+        // Future: Add respawn logic, animations, or other behaviors
+        
+        // Example: Auto-reset dummies after being "defeated" for a certain time
+        foreach (var dummy in _trainingDummies)
+        {
+            if (!dummy.IsAlive)
+            {
+                // Could add a respawn timer here in the future
+                // For now, keep them "alive" for testing
+                dummy.Reset();
+            }
+        }
     }
 
     public override void PostUpdate(GameTime gameTime)
@@ -115,6 +170,9 @@ public class TrainingGroundsState : GameState
 
         // Draw 3D environment
         _environmentRenderer.DrawEnvironment(_basicEffect);
+
+        // Draw training dummies
+        _trainingDummyRenderer.DrawDummies(_basicEffect, _trainingDummies);
 
         // Draw player cube
         _cubeRenderer.Draw(_basicEffect, _playerController.Position);
@@ -167,7 +225,7 @@ public class TrainingGroundsState : GameState
         spriteBatch.DrawString(_font,
             classTip,
             new Vector2(10, 130),
-            GetClassColor());
+            Color.LightGreen);
 
         // Environment status
         spriteBatch.DrawString(_font,
@@ -175,6 +233,22 @@ public class TrainingGroundsState : GameState
             new Vector2(10, 150),
             Color.LightGreen);
 
+        // Training dummy information
+        spriteBatch.DrawString(_font,
+            $"Training Dummies: {_trainingDummies.Count} placed - Look around to see them!",
+            new Vector2(10, 170),
+            Color.Orange);
+
+        spriteBatch.DrawString(_font,
+            "Orange/brown cubes are training dummies for future combat practice",
+            new Vector2(10, 190),
+            Color.Orange);
+
+        spriteBatch.End();
+
+        // Draw training dummy health bars (3D to 2D projection)
+        spriteBatch.Begin();
+        _trainingDummyRenderer.DrawDummyHealthBars(spriteBatch, _trainingDummies, _cameraController.View, _cameraController.Projection);
         spriteBatch.End();
     }
 
@@ -197,12 +271,21 @@ public class TrainingGroundsState : GameState
     }
 
     /// <summary>
+    /// Get training dummies (useful for future combat system)
+    /// </summary>
+    public List<TrainingDummy> GetTrainingDummies()
+    {
+        return _trainingDummies;
+    }
+
+    /// <summary>
     /// Dispose of resources when state is destroyed
     /// </summary>
     public void Dispose()
     {
         _cubeRenderer?.Dispose();
         _environmentRenderer?.Dispose();
+        _trainingDummyRenderer?.Dispose();
         _basicEffect?.Dispose();
     }
 }
