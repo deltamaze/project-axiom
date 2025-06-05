@@ -1,6 +1,5 @@
-using System;
 
-namespace project_axiom
+namespace project_axiom.Entities
 {
     public enum CharacterClass
     {

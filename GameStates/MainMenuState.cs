@@ -1,8 +1,4 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-using project_axiom.UI;
-using System.Collections.Generic;
+
 
 namespace project_axiom.GameStates
 {

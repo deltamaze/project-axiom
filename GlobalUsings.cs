@@ -1,0 +1,13 @@
+global using Microsoft.Xna.Framework;
+global using Microsoft.Xna.Framework.Content;
+global using Microsoft.Xna.Framework.Graphics;
+global using Microsoft.Xna.Framework.Input;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using project_axiom;
+global using project_axiom.Entities;
+global using project_axiom.GameStates;
+global using project_axiom.Input;
+global using project_axiom.Rendering;
+global using project_axiom.UI;

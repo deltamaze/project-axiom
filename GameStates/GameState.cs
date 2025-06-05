@@ -1,7 +1,3 @@
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
-
 namespace project_axiom.GameStates
 {
     public abstract class GameState

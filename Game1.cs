@@ -1,8 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using project_axiom.GameStates; // Ensure this using directive is present
-
+﻿
 namespace project_axiom;
 
 public class Game1 : Game
