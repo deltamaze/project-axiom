@@ -21,6 +21,9 @@ public class TrainingGroundsState : GameState
     // UI font
     private SpriteFont _font;
 
+    // Persistent 1x1 white texture for UI rectangles
+    private Texture2D _whiteTexture;
+
     // Constants
     private const float PLAYER_GROUND_OFFSET = 0.51f;
 
@@ -48,6 +51,10 @@ public class TrainingGroundsState : GameState
 
         // Initialize training dummies
         InitializeTrainingDummies();
+
+        // Create persistent 1x1 white texture for UI
+        _whiteTexture = new Texture2D(_graphicsDevice, 1, 1);
+        _whiteTexture.SetData(new[] { Color.White });
 
         System.Diagnostics.Debug.WriteLine($"Character {_character.Name} ({_character.Class}) entered Training Grounds");
         System.Diagnostics.Debug.WriteLine($"Training area: {GeometryBuilder.GROUND_SIZE}x{GeometryBuilder.GROUND_SIZE} units, Wall height: {GeometryBuilder.WALL_HEIGHT} units");
@@ -89,10 +96,10 @@ public class TrainingGroundsState : GameState
     private void InitializeTrainingDummies()
     {
         _trainingDummies = new List<TrainingDummy>();
-        
+
         // Get predefined positions from GeometryBuilder
         Vector3[] dummyPositions = GeometryBuilder.GetTrainingDummyPositions();
-        
+
         // Create training dummies at each position
         for (int i = 0; i < dummyPositions.Length; i++)
         {
@@ -129,6 +136,10 @@ public class TrainingGroundsState : GameState
         _basicEffect.View = _cameraController.View;
         _basicEffect.Projection = _cameraController.Projection;
 
+        // Update character resource regeneration
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _character.RegenerateResource(deltaTime);
+
         // Update training dummies (placeholder for future logic)
         UpdateTrainingDummies(gameTime);
     }
@@ -140,7 +151,7 @@ public class TrainingGroundsState : GameState
     {
         // For now, training dummies are static
         // Future: Add respawn logic, animations, or other behaviors
-        
+
         // Example: Auto-reset dummies after being "defeated" for a certain time
         foreach (var dummy in _trainingDummies)
         {
@@ -203,45 +214,48 @@ public class TrainingGroundsState : GameState
             new Vector2(10, 30),
             Color.LightBlue);
 
+        // Draw the class-specific resource bar (Section 6.8 implementation)
+        DrawResourceBar(spriteBatch, new Vector2(10, 50));
+
         // Training area info
         spriteBatch.DrawString(_font,
             $"Training Grounds ({GeometryBuilder.GROUND_SIZE}x{GeometryBuilder.GROUND_SIZE} area) - WASD to move, Mouse to look around",
-            new Vector2(10, 60),
+            new Vector2(10, 80),
             Color.White);
         spriteBatch.DrawString(_font,
             "Space/Shift for up/down, M to toggle mouse capture, ESC to return to menu",
-            new Vector2(10, 80),
+            new Vector2(10, 100),
             Color.White);
 
         // Position information
         Vector3 pos = _playerController.Position;
         spriteBatch.DrawString(_font,
             $"Position: X:{pos.X:F1} Y:{pos.Y:F1} Z:{pos.Z:F1}",
-            new Vector2(10, 110),
+            new Vector2(10, 130),
             Color.Yellow);
 
         // Class-specific tip
         string classTip = _playerController.GetClassTip();
         spriteBatch.DrawString(_font,
             classTip,
-            new Vector2(10, 130),
+            new Vector2(10, 150),
             Color.LightGreen);
 
         // Environment status
         spriteBatch.DrawString(_font,
             "Environment: Ground plane and boundary walls active (z-fighting resolved)",
-            new Vector2(10, 150),
+            new Vector2(10, 170),
             Color.LightGreen);
 
         // Training dummy information
         spriteBatch.DrawString(_font,
             $"Training Dummies: {_trainingDummies.Count} placed - Look around to see them!",
-            new Vector2(10, 170),
+            new Vector2(10, 190),
             Color.Orange);
 
         spriteBatch.DrawString(_font,
             "Orange/brown cubes are training dummies for future combat practice",
-            new Vector2(10, 190),
+            new Vector2(10, 210),
             Color.Orange);
 
         spriteBatch.End();
@@ -250,6 +264,30 @@ public class TrainingGroundsState : GameState
         spriteBatch.Begin();
         _trainingDummyRenderer.DrawDummyHealthBars(spriteBatch, _trainingDummies, _cameraController.View, _cameraController.Projection);
         spriteBatch.End();
+    }
+
+    /// <summary>
+    /// Draw the class-specific resource bar (Section 6.8 implementation)
+    /// </summary>
+    private void DrawResourceBar(SpriteBatch spriteBatch, Vector2 position)
+    {
+        float resourcePercentage = _character.GetResourcePercentage();
+        int barWidth = 200;
+        int barHeight = 20;
+
+        // Draw background (dark gray)
+        spriteBatch.Draw(_whiteTexture, new Rectangle((int)position.X, (int)position.Y, barWidth, barHeight), Color.DarkGray);
+
+        // Draw filled portion (class color)
+        int filledWidth = (int)(barWidth * resourcePercentage);
+        if (filledWidth > 0)
+        {
+            spriteBatch.Draw(_whiteTexture, new Rectangle((int)position.X, (int)position.Y, filledWidth, barHeight), _character.GetResourceColor());
+        }
+
+        // Draw text
+        string label = $"{_character.ResourceType}: {(int)_character.CurrentResource} / {_character.MaxResource}";
+        spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 24), Color.White);
     }
 
     /// <summary>
@@ -287,5 +325,6 @@ public class TrainingGroundsState : GameState
         _environmentRenderer?.Dispose();
         _trainingDummyRenderer?.Dispose();
         _basicEffect?.Dispose();
+        _whiteTexture?.Dispose();
     }
 }
