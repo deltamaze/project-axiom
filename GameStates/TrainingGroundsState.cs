@@ -221,23 +221,8 @@ public class TrainingGroundsState : GameState
             new Vector2(10, 10),
             Color.White);
 
-        spriteBatch.DrawString(_font,
-            $"Health: {_character.MaxHealth} | {_character.ResourceType}: {_character.MaxResource}",
-            new Vector2(10, 30),
-            Color.LightBlue);
-
         // Draw the class-specific resource bar (Section 6.8 implementation)
-        DrawResourceBar(spriteBatch, new Vector2(10, 50));
-
-        // Training area info
-        spriteBatch.DrawString(_font,
-            $"Training Grounds ({GeometryBuilder.GROUND_SIZE}x{GeometryBuilder.GROUND_SIZE} area) - WASD to move, Mouse to look around",
-            new Vector2(10, 80),
-            Color.White);
-        spriteBatch.DrawString(_font,
-            "Space/Shift for up/down, M to toggle mouse capture, ESC to return to menu",
-            new Vector2(10, 100),
-            Color.White);
+        DrawResourceBar(spriteBatch, new Vector2(10, 100));
 
         // Position information
         Vector3 pos = _playerController.Position;
@@ -246,29 +231,6 @@ public class TrainingGroundsState : GameState
             new Vector2(10, 130),
             Color.Yellow);
 
-        // Class-specific tip
-        string classTip = _playerController.GetClassTip();
-        spriteBatch.DrawString(_font,
-            classTip,
-            new Vector2(10, 150),
-            Color.LightGreen);
-
-        // Environment status
-        spriteBatch.DrawString(_font,
-            "Environment: Ground plane and boundary walls active (z-fighting resolved)",
-            new Vector2(10, 170),
-            Color.LightGreen);
-
-        // Training dummy information
-        spriteBatch.DrawString(_font,
-            $"Training Dummies: {_trainingDummies.Count} placed - Look around to see them!",
-            new Vector2(10, 190),
-            Color.Orange);
-
-        spriteBatch.DrawString(_font,
-            "Orange/brown cubes are training dummies for future combat practice",
-            new Vector2(10, 210),
-            Color.Orange);
 
         // Show targeted dummy info
         if (_targetedDummy != null && _targetedDummy.IsAlive)
@@ -307,7 +269,7 @@ public class TrainingGroundsState : GameState
 
         // Draw text
         string label = $"{_character.ResourceType}: {(int)_character.CurrentResource} / {_character.MaxResource}";
-        spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 24), Color.White);
+        spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 40), Color.White);
     }
 
     /// <summary>
