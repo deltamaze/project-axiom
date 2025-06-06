@@ -1,4 +1,3 @@
-
 namespace project_axiom.Entities;
 
 public enum CharacterClass
@@ -18,6 +17,9 @@ public class Character
     public int MaxResource { get; private set; }
     public string ResourceType { get; private set; }
 
+    // Current resource tracking (new for Section 6.8)
+    public float CurrentResource { get; set; }
+
     public Character()
     {
         SetClassDefaults();
@@ -27,6 +29,15 @@ public class Character
     {
         Name = name;
         Class = characterClass;
+        SetClassDefaults();
+    }
+
+    /// <summary>
+    /// Update the character class and refresh defaults
+    /// </summary>
+    public void UpdateClass(CharacterClass newClass)
+    {
+        Class = newClass;
         SetClassDefaults();
     }
 
@@ -50,6 +61,9 @@ public class Character
                 ResourceType = "Mana";
                 break;
         }
+        
+        // Initialize current resource to maximum
+        CurrentResource = MaxResource;
     }
 
     public string GetClassDescription()
@@ -64,6 +78,90 @@ public class Character
                 return "Master of magical arts with powerful spells and healing.";
             default:
                 return "";
+        }
+    }
+
+    /// <summary>
+    /// Get the resource as a percentage (0.0 to 1.0) for UI display
+    /// </summary>
+    public float GetResourcePercentage()
+    {
+        return MaxResource > 0 ? CurrentResource / MaxResource : 0f;
+    }
+
+    /// <summary>
+    /// Get the primary color for this character class
+    /// </summary>
+    public Color GetClassColor()
+    {
+        switch (Class)
+        {
+            case CharacterClass.Brawler:
+                return Color.Red;
+            case CharacterClass.Ranger:
+                return Color.Green;
+            case CharacterClass.Spellcaster:
+                return Color.Blue;
+            default:
+                return Color.Gray;
+        }
+    }
+
+    /// <summary>
+    /// Get the resource bar color for this character class
+    /// </summary>
+    public Color GetResourceColor()
+    {
+        switch (Class)
+        {
+            case CharacterClass.Brawler:
+                return Color.DarkRed;     // Rage - dark red
+            case CharacterClass.Ranger:
+                return Color.Gold;       // Energy - gold/yellow
+            case CharacterClass.Spellcaster:
+                return Color.DarkBlue;   // Mana - dark blue
+            default:
+                return Color.Gray;
+        }
+    }
+
+    /// <summary>
+    /// Consume resource for spell casting
+    /// </summary>
+    public bool TryConsumeResource(float amount)
+    {
+        if (CurrentResource >= amount)
+        {
+            CurrentResource = Math.Max(0, CurrentResource - amount);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Regenerate resource over time
+    /// </summary>
+    public void RegenerateResource(float deltaTime)
+    {
+        float regenRate = GetResourceRegenRate();
+        CurrentResource = Math.Min(MaxResource, CurrentResource + regenRate * deltaTime);
+    }
+
+    /// <summary>
+    /// Get the resource regeneration rate per second for this class
+    /// </summary>
+    private float GetResourceRegenRate()
+    {
+        switch (Class)
+        {
+            case CharacterClass.Brawler:
+                return 5f;   // Rage regenerates slowly
+            case CharacterClass.Ranger:
+                return 15f;  // Energy regenerates quickly
+            case CharacterClass.Spellcaster:
+                return 8f;   // Mana regenerates at medium rate
+            default:
+                return 5f;
         }
     }
 }

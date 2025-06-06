@@ -1,5 +1,3 @@
-
-
 namespace project_axiom.Input;
 
 /// <summary>
@@ -69,9 +67,47 @@ public class PlayerController
     // Handle movement
     HandleMovement(currentKeyboardState, deltaTime);
 
+    // Handle resource testing (Section 6.8 - for demonstration purposes)
+    HandleResourceTesting(currentKeyboardState);
+
     // Update previous states
     _previousKeyboardState = currentKeyboardState;
     _previousMouseState = currentMouseState;
+  }
+
+  /// <summary>
+  /// Handle resource testing keys for demonstration (Section 6.8)
+  /// </summary>
+  private void HandleResourceTesting(KeyboardState keyboardState)
+  {
+    // Test resource consumption with number keys 1-3
+    if (keyboardState.IsKeyDown(Keys.D1) && !_previousKeyboardState.IsKeyDown(Keys.D1))
+    {
+      // Test light resource consumption
+      _character.TryConsumeResource(10f);
+      System.Diagnostics.Debug.WriteLine($"Light ability used - {_character.ResourceType}: {_character.CurrentResource:F1}/{_character.MaxResource}");
+    }
+    
+    if (keyboardState.IsKeyDown(Keys.D2) && !_previousKeyboardState.IsKeyDown(Keys.D2))
+    {
+      // Test medium resource consumption
+      _character.TryConsumeResource(25f);
+      System.Diagnostics.Debug.WriteLine($"Medium ability used - {_character.ResourceType}: {_character.CurrentResource:F1}/{_character.MaxResource}");
+    }
+    
+    if (keyboardState.IsKeyDown(Keys.D3) && !_previousKeyboardState.IsKeyDown(Keys.D3))
+    {
+      // Test heavy resource consumption
+      _character.TryConsumeResource(50f);
+      System.Diagnostics.Debug.WriteLine($"Heavy ability used - {_character.ResourceType}: {_character.CurrentResource:F1}/{_character.MaxResource}");
+    }
+
+    // Test resource restore (for testing purposes)
+    if (keyboardState.IsKeyDown(Keys.R) && !_previousKeyboardState.IsKeyDown(Keys.R))
+    {
+      _character.CurrentResource = _character.MaxResource;
+      System.Diagnostics.Debug.WriteLine($"Resource restored - {_character.ResourceType}: {_character.CurrentResource:F1}/{_character.MaxResource}");
+    }
   }
 
   /// <summary>
@@ -198,11 +234,11 @@ public class PlayerController
     switch (_character.Class)
     {
       case CharacterClass.Brawler:
-        return "Tip: Brawlers are tough but slower. Get close to enemies!";
+        return "Tip: Brawlers are tough but slower. Get close to enemies! (Press 1/2/3 to test Rage consumption, R to restore)";
       case CharacterClass.Ranger:
-        return "Tip: Rangers are fast and agile. Keep your distance!";
+        return "Tip: Rangers are fast and agile. Keep your distance! (Press 1/2/3 to test Energy consumption, R to restore)";
       case CharacterClass.Spellcaster:
-        return "Tip: Spellcasters have powerful magic. Manage your mana wisely!";
+        return "Tip: Spellcasters have powerful magic. Manage your mana wisely! (Press 1/2/3 to test Mana consumption, R to restore)";
       default:
         return "";
     }
