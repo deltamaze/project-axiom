@@ -27,6 +27,10 @@ public class TrainingGroundsState : GameState
     // Constants
     private const float PLAYER_GROUND_OFFSET = 0.51f;
 
+    // Targeting system
+    private TrainingDummy _targetedDummy;
+    private MouseState _previousMouseState;
+
     public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, Character character)
         : base(game, graphicsDevice, content)
     {
@@ -142,6 +146,14 @@ public class TrainingGroundsState : GameState
 
         // Update training dummies (placeholder for future logic)
         UpdateTrainingDummies(gameTime);
+
+        // Mouse picking for click-to-target
+        MouseState mouseState = Mouse.GetState();
+        if (mouseState.LeftButton == ButtonState.Pressed && _previousMouseState.LeftButton == ButtonState.Released)
+        {
+            _targetedDummy = GetDummyUnderMouse(mouseState.Position);
+        }
+        _previousMouseState = mouseState;
     }
 
     /// <summary>
@@ -182,13 +194,13 @@ public class TrainingGroundsState : GameState
         // Draw 3D environment
         _environmentRenderer.DrawEnvironment(_basicEffect);
 
-        // Draw training dummies
-        _trainingDummyRenderer.DrawDummies(_basicEffect, _trainingDummies);
+        // Draw training dummies (pass targeted dummy)
+        _trainingDummyRenderer.DrawDummies(_basicEffect, _trainingDummies, _targetedDummy);
 
         // Draw player cube
         _cubeRenderer.Draw(_basicEffect, _playerController.Position);
 
-        // Draw UI
+        // Draw UI (show targeted dummy info)
         DrawUI(spriteBatch);
 
         // Reset render states
@@ -258,11 +270,19 @@ public class TrainingGroundsState : GameState
             new Vector2(10, 210),
             Color.Orange);
 
+        // Show targeted dummy info
+        if (_targetedDummy != null && _targetedDummy.IsAlive)
+        {
+            string info = $"Target: {_targetedDummy.Name}  HP: {(int)_targetedDummy.CurrentHealth} / {(int)_targetedDummy.MaxHealth}";
+            Vector2 size = _font.MeasureString(info);
+            spriteBatch.DrawString(_font, info, new Vector2((_graphicsDevice.Viewport.Width - size.X) / 2, 10), Color.Yellow);
+        }
+
         spriteBatch.End();
 
         // Draw training dummy health bars (3D to 2D projection)
         spriteBatch.Begin();
-        _trainingDummyRenderer.DrawDummyHealthBars(spriteBatch, _trainingDummies, _cameraController.View, _cameraController.Projection);
+        _trainingDummyRenderer.DrawDummyHealthBars(spriteBatch, _trainingDummies, _cameraController.View, _cameraController.Projection, _targetedDummy);
         spriteBatch.End();
     }
 
@@ -326,5 +346,27 @@ public class TrainingGroundsState : GameState
         _trainingDummyRenderer?.Dispose();
         _basicEffect?.Dispose();
         _whiteTexture?.Dispose();
+    }
+
+    private TrainingDummy GetDummyUnderMouse(Point mousePosition)
+    {
+        // Convert mouse to world ray
+        Vector3 nearPoint = _graphicsDevice.Viewport.Unproject(new Vector3(mousePosition.X, mousePosition.Y, 0), _cameraController.Projection, _cameraController.View, Matrix.Identity);
+        Vector3 farPoint = _graphicsDevice.Viewport.Unproject(new Vector3(mousePosition.X, mousePosition.Y, 1), _cameraController.Projection, _cameraController.View, Matrix.Identity);
+        Vector3 direction = Vector3.Normalize(farPoint - nearPoint);
+        float closestDist = float.MaxValue;
+        TrainingDummy closestDummy = null;
+        foreach (var dummy in _trainingDummies)
+        {
+            if (!dummy.IsAlive) continue;
+            BoundingBox box = new BoundingBox(dummy.Position - new Vector3(dummy.Scale/2), dummy.Position + new Vector3(dummy.Scale/2));
+            float? dist = box.Intersects(new Ray(nearPoint, direction));
+            if (dist.HasValue && dist.Value < closestDist)
+            {
+                closestDist = dist.Value;
+                closestDummy = dummy;
+            }
+        }
+        return closestDummy;
     }
 }
