@@ -21,6 +21,9 @@ public class TrainingGroundsState : GameState
     // UI font
     private SpriteFont _font;
 
+    // Persistent 1x1 white texture for UI rectangles
+    private Texture2D _whiteTexture;
+
     // Constants
     private const float PLAYER_GROUND_OFFSET = 0.51f;
 
@@ -48,6 +51,10 @@ public class TrainingGroundsState : GameState
 
         // Initialize training dummies
         InitializeTrainingDummies();
+
+        // Create persistent 1x1 white texture for UI
+        _whiteTexture = new Texture2D(_graphicsDevice, 1, 1);
+        _whiteTexture.SetData(new[] { Color.White });
 
         System.Diagnostics.Debug.WriteLine($"Character {_character.Name} ({_character.Class}) entered Training Grounds");
         System.Diagnostics.Debug.WriteLine($"Training area: {GeometryBuilder.GROUND_SIZE}x{GeometryBuilder.GROUND_SIZE} units, Wall height: {GeometryBuilder.WALL_HEIGHT} units");
@@ -89,10 +96,10 @@ public class TrainingGroundsState : GameState
     private void InitializeTrainingDummies()
     {
         _trainingDummies = new List<TrainingDummy>();
-        
+
         // Get predefined positions from GeometryBuilder
         Vector3[] dummyPositions = GeometryBuilder.GetTrainingDummyPositions();
-        
+
         // Create training dummies at each position
         for (int i = 0; i < dummyPositions.Length; i++)
         {
@@ -144,7 +151,7 @@ public class TrainingGroundsState : GameState
     {
         // For now, training dummies are static
         // Future: Add respawn logic, animations, or other behaviors
-        
+
         // Example: Auto-reset dummies after being "defeated" for a certain time
         foreach (var dummy in _trainingDummies)
         {
@@ -264,72 +271,23 @@ public class TrainingGroundsState : GameState
     /// </summary>
     private void DrawResourceBar(SpriteBatch spriteBatch, Vector2 position)
     {
-        // Resource bar dimensions
+        float resourcePercentage = _character.GetResourcePercentage();
         int barWidth = 200;
         int barHeight = 20;
-        int borderWidth = 2;
 
-        // Create temporary texture for drawing rectangles
-        Texture2D pixelTexture = new Texture2D(_graphicsDevice, 1, 1);
-        pixelTexture.SetData(new[] { Color.White });
+        // Draw background (dark gray)
+        spriteBatch.Draw(_whiteTexture, new Rectangle((int)position.X, (int)position.Y, barWidth, barHeight), Color.DarkGray);
 
-        // Calculate resource fill percentage and width
-        float resourcePercentage = _character.GetResourcePercentage();
-        int innerWidth = barWidth - borderWidth * 2;
-        int innerHeight = barHeight - borderWidth * 2;
-        int fillWidth = Math.Max(0, (int)(innerWidth * resourcePercentage));
-
-        // Debug output to console (remove this later)
-        // System.Diagnostics.Debug.WriteLine($"Resource Bar Debug - Percentage: {resourcePercentage:F2}, FillWidth: {fillWidth}, Current: {_character.CurrentResource:F1}, Max: {_character.MaxResource}");
-
-        // Draw resource bar background (dark gray)
-        Rectangle backgroundRect = new Rectangle((int)position.X, (int)position.Y, barWidth, barHeight);
-        spriteBatch.Draw(pixelTexture, backgroundRect, Color.DarkGray);
-
-        // Draw inner background (black)
-        Rectangle innerBackgroundRect = new Rectangle(
-            (int)position.X + borderWidth, 
-            (int)position.Y + borderWidth, 
-            innerWidth, 
-            innerHeight);
-        spriteBatch.Draw(pixelTexture, innerBackgroundRect, Color.Black);
-
-        // Draw resource fill (class-specific color) - ALWAYS draw something even if very small
-        if (resourcePercentage > 0)
+        // Draw filled portion (class color)
+        int filledWidth = (int)(barWidth * resourcePercentage);
+        if (filledWidth > 0)
         {
-            // Ensure minimum 1 pixel width if there's any resource
-            int actualFillWidth = Math.Max(1, fillWidth);
-            Rectangle fillRect = new Rectangle(
-                (int)position.X + borderWidth,
-                (int)position.Y + borderWidth,
-                actualFillWidth,
-                innerHeight
-            );
-            spriteBatch.Draw(pixelTexture, fillRect, _character.GetResourceColor());
+            spriteBatch.Draw(_whiteTexture, new Rectangle((int)position.X, (int)position.Y, filledWidth, barHeight), _character.GetResourceColor());
         }
 
-        // Draw resource bar border (white)
-        // Top border
-        spriteBatch.Draw(pixelTexture, new Rectangle((int)position.X, (int)position.Y, barWidth, borderWidth), Color.White);
-        // Bottom border  
-        spriteBatch.Draw(pixelTexture, new Rectangle((int)position.X, (int)position.Y + barHeight - borderWidth, barWidth, borderWidth), Color.White);
-        // Left border
-        spriteBatch.Draw(pixelTexture, new Rectangle((int)position.X, (int)position.Y, borderWidth, barHeight), Color.White);
-        // Right border
-        spriteBatch.Draw(pixelTexture, new Rectangle((int)position.X + barWidth - borderWidth, (int)position.Y, borderWidth, barHeight), Color.White);
-
-        // Dispose the temporary texture
-        pixelTexture.Dispose();
-
-        // Draw resource text label
-        string resourceText = $"{_character.ResourceType}: {_character.CurrentResource:F0}/{_character.MaxResource}";
-        Vector2 textPosition = new Vector2(position.X + barWidth + 10, position.Y + (barHeight / 2) - (_font.MeasureString(resourceText).Y / 2));
-        spriteBatch.DrawString(_font, resourceText, textPosition, _character.GetResourceColor());
-
-        // Draw resource percentage
-        string percentageText = $"({resourcePercentage * 100:F0}%)";
-        Vector2 percentagePosition = new Vector2(textPosition.X + _font.MeasureString(resourceText).X + 5, textPosition.Y);
-        spriteBatch.DrawString(_font, percentageText, percentagePosition, Color.LightGray);
+        // Draw text
+        string label = $"{_character.ResourceType}: {(int)_character.CurrentResource} / {_character.MaxResource}";
+        spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 24), Color.White);
     }
 
     /// <summary>
@@ -367,5 +325,6 @@ public class TrainingGroundsState : GameState
         _environmentRenderer?.Dispose();
         _trainingDummyRenderer?.Dispose();
         _basicEffect?.Dispose();
+        _whiteTexture?.Dispose();
     }
 }
