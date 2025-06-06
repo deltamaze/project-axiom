@@ -182,7 +182,8 @@ Players choose one of three base classes, each with its own thematic focus, armo
     * Client: On launch, attempts to connect to the server's address.
     * Goal: Successfully log "Client connected" on the server and "Connected to server" on the client. This is the "Hello World" of your network code.
 20. **Persistence Abstraction (IDatabase):**
-    * In the Shared project, define an interface, IDatabaseService.
+    * In the Server project, define an interface, IDatabaseService.
+    * In the Shared project, define CharacterData (Data Transfer Object class).
     * Define methods like Task<CharacterData> GetCharacterAsync(string characterId) and Task SaveCharacterAsync(CharacterData character).
     * In the Server project, create a class FileSystemDatabaseService : IDatabaseService. Implement the methods by reading from and writing to local JSON files (characterId.json).
 21. **Dependency Injection (DI) Setup:**
