@@ -240,6 +240,9 @@ public class TrainingGroundsState : GameState
             spriteBatch.DrawString(_font, info, new Vector2((_graphicsDevice.Viewport.Width - size.X) / 2, 10), Color.Yellow);
         }
 
+        // Draw placeholder spell bar UI (8 slots)
+        DrawSpellBar(spriteBatch);
+
         spriteBatch.End();
 
         // Draw training dummy health bars (3D to 2D projection)
@@ -270,6 +273,37 @@ public class TrainingGroundsState : GameState
         // Draw text
         string label = $"{_character.ResourceType}: {(int)_character.CurrentResource} / {_character.MaxResource}";
         spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 40), Color.White);
+    }
+
+    /// <summary>
+    /// Draw the placeholder spell bar UI with 8 empty slots
+    /// </summary>
+    private void DrawSpellBar(SpriteBatch spriteBatch)
+    {
+        int slotCount = 8;
+        int slotWidth = 48;
+        int slotHeight = 48;
+        int slotSpacing = 12;
+        int totalWidth = slotCount * slotWidth + (slotCount - 1) * slotSpacing;
+        int startX = (_graphicsDevice.Viewport.Width - totalWidth) / 2;
+        int y = _graphicsDevice.Viewport.Height - slotHeight - 32;
+        for (int i = 0; i < slotCount; i++)
+        {
+            int x = startX + i * (slotWidth + slotSpacing);
+            Rectangle rect = new Rectangle(x, y, slotWidth, slotHeight);
+            spriteBatch.Draw(_whiteTexture, rect, Color.DarkSlateGray);
+            // Draw border
+            int border = 2;
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, slotWidth, border), Color.White); // Top
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y + slotHeight - border, slotWidth, border), Color.White); // Bottom
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, slotHeight), Color.White); // Left
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x + slotWidth - border, y, border, slotHeight), Color.White); // Right
+            // Draw slot number
+            string num = (i + 1).ToString();
+            Vector2 numSize = _font.MeasureString(num);
+            Vector2 numPos = new Vector2(x + (slotWidth - numSize.X) / 2, y + slotHeight - numSize.Y - 4);
+            spriteBatch.DrawString(_font, num, numPos, Color.LightGray);
+        }
     }
 
     /// <summary>
