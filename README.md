@@ -173,7 +173,71 @@ Players choose one of three base classes, each with its own thematic focus, armo
     * After a short delay, make defeated dummies reappear.
 17. **Basic Player "Death" (Placeholder):**
     * If player health reaches zero, display a "You are defeated" message. No need for complex respawn logic yet.
-
+18. **Project Scaffolding & Shared Logic:**
+    * Create two new projects within your solution: BlockBrawlers.Server (a Console Application) and BlockBrawlers.Shared (a Class Library).
+    * Move any data structures that need to be understood by both client and server into the Shared project (e.g., Vector3, PlayerData, SpellData classes). Both the client and server projects will reference this.
+19. **Basic Network Communication Layer:**
+    * Using a library like WebSocketSharp or .NET's built-in System.Net.WebSockets, implement the most basic connection.
+    * Server: Listens for incoming WebSocket connections.
+    * Client: On launch, attempts to connect to the server's address.
+    * Goal: Successfully log "Client connected" on the server and "Connected to server" on the client. This is the "Hello World" of your network code.
+20. **Persistence Abstraction (IDatabase):**
+    * In the Shared project, define an interface, IDatabaseService.
+    * Define methods like Task<CharacterData> GetCharacterAsync(string characterId) and Task SaveCharacterAsync(CharacterData character).
+    * In the Server project, create a class FileSystemDatabaseService : IDatabaseService. Implement the methods by reading from and writing to local JSON files (characterId.json).
+21. **Dependency Injection (DI) Setup:**
+    * Introduce a DI container (like Microsoft.Extensions.DependencyInjection) to both the client and server projects.
+    * Server: Register your FileSystemDatabaseService as the implementation for IDatabaseService.
+    * This makes your code loosely coupled and easier to test and maintain from the start.
+22. **Basic "Login" and Character Loading:**
+    * Refactor the client's Character Selection screen.
+    * When the player enters a name and clicks "Load Game," the client sends a RequestCharacterLoad message to the server with the character name.
+    * The server receives the message, uses the IDatabaseService to find and load the character's JSON file, and sends a CharacterDataResponse back to the client. The client now holds the data for the selected character.
+23. **Game Session Management on Server:**
+    * Create a GameSessionManager on the server. Its job is to manage active game instances (for now, just Training Grounds).
+    * When a client requests to enter the Training Grounds, the manager creates a new GameSession, gives it a unique ID, and adds the player to it. This prepares you for handling multiple, separate 16v16 matches in the future.
+24. **Entering the World (Server-Driven):**
+    * When the client gets the green light to join a game session, the server sends an initial JoinSessionSuccess message.
+    * This message contains the essential starting data: the map to load ("TrainingGrounds") and the player's starting position. The client no longer decides this for itself.
+25. **Server-Authoritative Dummies:**
+    * Move the logic for placing and managing Training Dummies (Step 7) to the server.
+    * When a GameSession for the Training Grounds is created, the server spawns the dummy entities in its memory.
+    * The server then sends messages to all clients in the session telling them where to render the dummies and what their health is.
+26. **Authoritative Movement (Server-Side Logic):**
+    * On the server, create the core movement logic. It should receive simple input states from the client (e.g., isMovingForward: true, isJumping: true, yaw: 95.4).
+    * The server will run its own physics tick, calculating the player's new position based on the input and server-side collision detection (e.g., "Is the player trying to walk through a wall?"). The server now holds the player's true position.
+27. **Client-Side Prediction (The "Fluidity" part):**
+    * On the client, when the player presses 'W', continue to move the character immediately, just as you do now. This is the prediction.
+    * Simultaneously, the client packages up the input state and sends it to the server every frame or on a fixed interval.
+28. **State Synchronization & Reconciliation (The "Anti-Cheat" part):**
+    * The server, on a fixed tick (e.g., 20 times per second), broadcasts the authoritative state of all entities (players, dummies) to every client in the session.
+    * The client receives this state update. It compares its predicted position with the authoritative position sent by the server.
+    * If they are different, the client must correct its position to match the server's. This is the reconciliation that prevents speed hacking and fixes desync.
+29. **Unit Testing Framework Setup:**
+    * Create a new Unit Test project (e.g., using xUnit, NUnit).
+    * Write your first simple test. A great candidate is a "pure" function, like a test for a spell's damage calculation or verifying that your FileSystemDatabaseService correctly saves and loads a JSON file.
+30. **Refactor Click-to-Target:**
+    * The client no longer decides its target. When the player clicks a dummy, the client sends a RequestSetTarget(dummyId) message.
+    * The server validates this request (is the dummy in line of sight? in range?). If valid, it sets the player's target in its game state and notifies the client: TargetChanged(dummyId).
+    * The client's UI updates only after receiving confirmation from the server.
+31. **Refactor Spell Casting (The Full Loop):**
+    * This combines everything. Refactor one of your class spells (e.g., Brawler's "Slam").
+    * Client: Pressing '1' sends RequestCastSpell("Slam").
+    * Server: Receives request. Validates everything: Is the player a Brawler? Do they have a valid target? Is the target in melee range (based on authoritative positions)? Is the spell off cooldown? Do they have the Rage?
+    * Server: If all checks pass, the server executes the logic: it reduces the dummy's health and starts the spell's cooldown timer on the server.
+    * Server: It broadcasts the results: PlayerX_HealthChanged(newHealth), PlayerX_SpellUsed("Slam").
+    * Client: Receives these messages and plays the visual/audio effects and updates the dummy's health bar.
+32. **Saving Character State on Exit:**
+    * Implement a Disconnect message. When the client closes or sends this message, the server should take the player's current state from the GameSession and save it back to the JSON file using the IDatabaseService. This will save their position, health, etc.
+33. **Persisting Spell Bar and Gear:**
+    * Expand the CharacterData class in the Shared project to include List<string> EquippedSpells and Dictionary<GearSlot, GearItem> EquippedGear.
+    * Update the server's character loading/saving logic to handle this new data. For now, the gear can just be placeholder data.
+34. **Expanded UI Shell:**
+    * In the client's Main Menu, add the buttons for the other game modes ("5v5 Capture Point," "16v16 Battleground"). Have them be disabled or lead to a "Coming Soon!" message. This builds the framework for future expansion.
+35. **Server Logging:**
+    * Implement basic logging on the server (e.g., writing to a text file or the console). Log important events: server start, player connect/disconnect, session creation, and potential errors. This is invaluable for debugging.
+36. **Basic Player Respawn (Server-Side):**
+    * Move the death/respawn logic (Steps 15-17) to the server. When a player's or dummy's health reaches zero, the server marks them as "dead" and starts a respawn timer. When the timer completes, the server changes their state back to "alive," sets their health to full, moves them to a spawn point, and informs all clients of these changes.
 ---
 
 ### 7. AI/LLM Integration Strategy

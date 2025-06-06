@@ -221,23 +221,8 @@ public class TrainingGroundsState : GameState
             new Vector2(10, 10),
             Color.White);
 
-        spriteBatch.DrawString(_font,
-            $"Health: {_character.MaxHealth} | {_character.ResourceType}: {_character.MaxResource}",
-            new Vector2(10, 30),
-            Color.LightBlue);
-
         // Draw the class-specific resource bar (Section 6.8 implementation)
-        DrawResourceBar(spriteBatch, new Vector2(10, 50));
-
-        // Training area info
-        spriteBatch.DrawString(_font,
-            $"Training Grounds ({GeometryBuilder.GROUND_SIZE}x{GeometryBuilder.GROUND_SIZE} area) - WASD to move, Mouse to look around",
-            new Vector2(10, 80),
-            Color.White);
-        spriteBatch.DrawString(_font,
-            "Space/Shift for up/down, M to toggle mouse capture, ESC to return to menu",
-            new Vector2(10, 100),
-            Color.White);
+        DrawResourceBar(spriteBatch, new Vector2(10, 100));
 
         // Position information
         Vector3 pos = _playerController.Position;
@@ -246,29 +231,6 @@ public class TrainingGroundsState : GameState
             new Vector2(10, 130),
             Color.Yellow);
 
-        // Class-specific tip
-        string classTip = _playerController.GetClassTip();
-        spriteBatch.DrawString(_font,
-            classTip,
-            new Vector2(10, 150),
-            Color.LightGreen);
-
-        // Environment status
-        spriteBatch.DrawString(_font,
-            "Environment: Ground plane and boundary walls active (z-fighting resolved)",
-            new Vector2(10, 170),
-            Color.LightGreen);
-
-        // Training dummy information
-        spriteBatch.DrawString(_font,
-            $"Training Dummies: {_trainingDummies.Count} placed - Look around to see them!",
-            new Vector2(10, 190),
-            Color.Orange);
-
-        spriteBatch.DrawString(_font,
-            "Orange/brown cubes are training dummies for future combat practice",
-            new Vector2(10, 210),
-            Color.Orange);
 
         // Show targeted dummy info
         if (_targetedDummy != null && _targetedDummy.IsAlive)
@@ -277,6 +239,9 @@ public class TrainingGroundsState : GameState
             Vector2 size = _font.MeasureString(info);
             spriteBatch.DrawString(_font, info, new Vector2((_graphicsDevice.Viewport.Width - size.X) / 2, 10), Color.Yellow);
         }
+
+        // Draw placeholder spell bar UI (8 slots)
+        DrawSpellBar(spriteBatch);
 
         spriteBatch.End();
 
@@ -307,7 +272,38 @@ public class TrainingGroundsState : GameState
 
         // Draw text
         string label = $"{_character.ResourceType}: {(int)_character.CurrentResource} / {_character.MaxResource}";
-        spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 24), Color.White);
+        spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 40), Color.White);
+    }
+
+    /// <summary>
+    /// Draw the placeholder spell bar UI with 8 empty slots
+    /// </summary>
+    private void DrawSpellBar(SpriteBatch spriteBatch)
+    {
+        int slotCount = 8;
+        int slotWidth = 48;
+        int slotHeight = 48;
+        int slotSpacing = 12;
+        int totalWidth = slotCount * slotWidth + (slotCount - 1) * slotSpacing;
+        int startX = (_graphicsDevice.Viewport.Width - totalWidth) / 2;
+        int y = _graphicsDevice.Viewport.Height - slotHeight - 32;
+        for (int i = 0; i < slotCount; i++)
+        {
+            int x = startX + i * (slotWidth + slotSpacing);
+            Rectangle rect = new Rectangle(x, y, slotWidth, slotHeight);
+            spriteBatch.Draw(_whiteTexture, rect, Color.DarkSlateGray);
+            // Draw border
+            int border = 2;
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, slotWidth, border), Color.White); // Top
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y + slotHeight - border, slotWidth, border), Color.White); // Bottom
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, slotHeight), Color.White); // Left
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x + slotWidth - border, y, border, slotHeight), Color.White); // Right
+            // Draw slot number
+            string num = (i + 1).ToString();
+            Vector2 numSize = _font.MeasureString(num);
+            Vector2 numPos = new Vector2(x + (slotWidth - numSize.X) / 2, y + slotHeight - numSize.Y - 4);
+            spriteBatch.DrawString(_font, num, numPos, Color.LightGray);
+        }
     }
 
     /// <summary>
