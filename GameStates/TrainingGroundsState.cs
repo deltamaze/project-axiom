@@ -31,6 +31,10 @@ public class TrainingGroundsState : GameState
     private TrainingDummy _targetedDummy;
     private MouseState _previousMouseState;
 
+    // Add player health fields
+    private float _playerMaxHealth = 100f;
+    private float _playerCurrentHealth = 100f;
+
     public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, Character character)
         : base(game, graphicsDevice, content)
     {
@@ -240,6 +244,9 @@ public class TrainingGroundsState : GameState
             spriteBatch.DrawString(_font, info, new Vector2((_graphicsDevice.Viewport.Width - size.X) / 2, 10), Color.Yellow);
         }
 
+        // Draw player health bar above player (centered at top of screen)
+        DrawPlayerHealthBar(spriteBatch);
+
         // Draw placeholder spell bar UI (8 slots)
         DrawSpellBar(spriteBatch);
 
@@ -249,6 +256,32 @@ public class TrainingGroundsState : GameState
         spriteBatch.Begin();
         _trainingDummyRenderer.DrawDummyHealthBars(spriteBatch, _trainingDummies, _cameraController.View, _cameraController.Projection, _targetedDummy);
         spriteBatch.End();
+    }
+
+    private void DrawPlayerHealthBar(SpriteBatch spriteBatch)
+    {
+        // Bar settings
+        int barWidth = 180;
+        int barHeight = 18;
+        int x = (_graphicsDevice.Viewport.Width - barWidth) / 2;
+        int y = 48; // Just below the top UI
+        float healthPercent = _playerCurrentHealth / _playerMaxHealth;
+        // Draw background
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, barWidth, barHeight), Color.DarkRed);
+        // Draw fill
+        int fillWidth = (int)(barWidth * healthPercent);
+        if (fillWidth > 0)
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, fillWidth, barHeight), Color.Red);
+        // Draw border
+        int border = 2;
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, barWidth, border), Color.White); // Top
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y + barHeight - border, barWidth, border), Color.White); // Bottom
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, barHeight), Color.White); // Left
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x + barWidth - border, y, border, barHeight), Color.White); // Right
+        // Draw text
+        string label = $"Player HP: {(int)_playerCurrentHealth} / {(int)_playerMaxHealth}";
+        Vector2 size = _font.MeasureString(label);
+        spriteBatch.DrawString(_font, label, new Vector2(x + (barWidth - size.X) / 2, y + (barHeight - size.Y) / 2), Color.White);
     }
 
     /// <summary>
