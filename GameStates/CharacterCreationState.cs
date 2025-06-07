@@ -1,4 +1,3 @@
-
 namespace project_axiom.GameStates;
 
 public class CharacterCreationState : GameState
