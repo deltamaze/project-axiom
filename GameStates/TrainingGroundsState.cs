@@ -279,7 +279,7 @@ public class TrainingGroundsState : GameState
         spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, barHeight), Color.White); // Left
         spriteBatch.Draw(_whiteTexture, new Rectangle(x + barWidth - border, y, border, barHeight), Color.White); // Right
         // Draw text
-        string label = $"Player HP: {(int)_playerCurrentHealth} / {(int)_playerMaxHealth}";
+        string label = $"{(int)_playerCurrentHealth} / {(int)_playerMaxHealth}";
         Vector2 size = _font.MeasureString(label);
         spriteBatch.DrawString(_font, label, new Vector2(x + (barWidth - size.X) / 2, y + (barHeight - size.Y) / 2), Color.White);
     }
