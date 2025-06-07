@@ -1,4 +1,3 @@
-
 namespace project_axiom.GameStates;
 
 public class CharacterCreationState : GameState
@@ -100,7 +99,7 @@ public class CharacterCreationState : GameState
     private void SelectClass(CharacterClass characterClass)
     {
         _selectedClass = characterClass;
-        _character.Class = characterClass;
+        _character.UpdateClass(characterClass);
 
         // Update button colors to show selection
         UpdateClassButtonColors();
@@ -233,7 +232,6 @@ public class CharacterCreationState : GameState
 
     private string GetSelectedClassDescription()
     {
-        var tempCharacter = new Character("", _selectedClass);
-        return tempCharacter.GetClassDescription();
+        return _character.GetClassDescription();
     }
 }

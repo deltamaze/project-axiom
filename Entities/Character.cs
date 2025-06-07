@@ -7,6 +7,13 @@ public enum CharacterClass
     Spellcaster
 }
 
+public enum ResourceTypeEnum
+{
+    Mana,
+    Energy,
+    Frenzy
+}
+
 public class Character
 {
     public string Name { get; set; } = "";
@@ -15,7 +22,7 @@ public class Character
     // Class-specific properties that will be used later
     public int MaxHealth { get; private set; }
     public int MaxResource { get; private set; }
-    public string ResourceType { get; private set; }
+    public ResourceTypeEnum ResourceType { get; private set; }
 
     // Current resource tracking (new for Section 6.8)
     public float CurrentResource { get; set; }
@@ -48,17 +55,17 @@ public class Character
             case CharacterClass.Brawler:
                 MaxHealth = 150;
                 MaxResource = 100;
-                ResourceType = "Rage";
+                ResourceType = ResourceTypeEnum.Frenzy;
                 break;
             case CharacterClass.Ranger:
                 MaxHealth = 120;
                 MaxResource = 120;
-                ResourceType = "Energy";
+                ResourceType = ResourceTypeEnum.Energy;
                 break;
             case CharacterClass.Spellcaster:
                 MaxHealth = 100;
                 MaxResource = 150;
-                ResourceType = "Mana";
+                ResourceType = ResourceTypeEnum.Mana;
                 break;
         }
         

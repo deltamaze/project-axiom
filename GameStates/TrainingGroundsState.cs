@@ -31,6 +31,10 @@ public class TrainingGroundsState : GameState
     private TrainingDummy _targetedDummy;
     private MouseState _previousMouseState;
 
+    // Add player health fields
+    private float _playerMaxHealth = 100f;
+    private float _playerCurrentHealth = 100f;
+
     public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, Character character)
         : base(game, graphicsDevice, content)
     {
@@ -215,24 +219,10 @@ public class TrainingGroundsState : GameState
     {
         spriteBatch.Begin();
 
-        // Character information
-        spriteBatch.DrawString(_font,
-            $"Character: {_character.Name} ({_character.Class})",
-            new Vector2(10, 10),
-            Color.White);
+        // Draw player health and resource bars at top left
+        DrawPlayerHealthAndResourceBars(spriteBatch);
 
-        // Draw the class-specific resource bar (Section 6.8 implementation)
-        DrawResourceBar(spriteBatch, new Vector2(10, 100));
-
-        // Position information
-        Vector3 pos = _playerController.Position;
-        spriteBatch.DrawString(_font,
-            $"Position: X:{pos.X:F1} Y:{pos.Y:F1} Z:{pos.Z:F1}",
-            new Vector2(10, 130),
-            Color.Yellow);
-
-
-        // Show targeted dummy info
+        // Show targeted dummy info (centered at top)
         if (_targetedDummy != null && _targetedDummy.IsAlive)
         {
             string info = $"Target: {_targetedDummy.Name}  HP: {(int)_targetedDummy.CurrentHealth} / {(int)_targetedDummy.MaxHealth}";
@@ -251,28 +241,99 @@ public class TrainingGroundsState : GameState
         spriteBatch.End();
     }
 
-    /// <summary>
-    /// Draw the class-specific resource bar (Section 6.8 implementation)
-    /// </summary>
-    private void DrawResourceBar(SpriteBatch spriteBatch, Vector2 position)
+    // Draws the player health and resource bars at the top left
+    private void DrawPlayerHealthAndResourceBars(SpriteBatch spriteBatch)
     {
-        float resourcePercentage = _character.GetResourcePercentage();
-        int barWidth = 200;
-        int barHeight = 20;
-
-        // Draw background (dark gray)
-        spriteBatch.Draw(_whiteTexture, new Rectangle((int)position.X, (int)position.Y, barWidth, barHeight), Color.DarkGray);
-
-        // Draw filled portion (class color)
-        int filledWidth = (int)(barWidth * resourcePercentage);
-        if (filledWidth > 0)
+        // Bar settings
+        int barWidth = 280;
+        int healthBarHeight = 28;
+        int resourceBarHeight = 16;
+        int x = 24;
+        int y = 24;
+        int spacing = 4;
+        float healthPercent = _playerCurrentHealth / _playerMaxHealth;
+        Color healthColor;
+        Color borderColor = Color.White;
+        Color textColor = Color.White;
+        // Class color for health bar
+        switch (_character.Class)
         {
-            spriteBatch.Draw(_whiteTexture, new Rectangle((int)position.X, (int)position.Y, filledWidth, barHeight), _character.GetResourceColor());
+            case CharacterClass.Brawler:
+                healthColor = new Color(255, 140, 0); // Orange
+                break;
+            case CharacterClass.Ranger:
+                healthColor = new Color(0, 200, 80); // Green
+                break;
+            case CharacterClass.Spellcaster:
+                healthColor = new Color(0, 200, 220); // Teal/Light Blue
+                break;
+            default:
+                healthColor = Color.Gray;
+                break;
         }
+        // Draw health bar background
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, barWidth, healthBarHeight), Color.Black);
+        // Draw health fill
+        int fillWidth = (int)(barWidth * healthPercent);
+        if (fillWidth > 0)
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, fillWidth, healthBarHeight), healthColor);
+        // Draw border
+        int border = 2;
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, barWidth, border), borderColor); // Top
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y + healthBarHeight - border, barWidth, border), borderColor); // Bottom
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, healthBarHeight), borderColor); // Left
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x + barWidth - border, y, border, healthBarHeight), borderColor); // Right
+        // Draw player name (left)
+        string name = _character.Name;
+        Vector2 nameSize = _font.MeasureString(name);
+        spriteBatch.DrawString(_font, name, new Vector2(x + 8, y + (healthBarHeight - nameSize.Y) / 2), textColor);
+        // Draw health value (right)
+        string healthLabel = $"{(int)_playerCurrentHealth} / {(int)_playerMaxHealth}";
+        Vector2 healthSize = _font.MeasureString(healthLabel);
+        spriteBatch.DrawString(_font, healthLabel, new Vector2(x + barWidth - healthSize.X - 8, y + (healthBarHeight - healthSize.Y) / 2), textColor);
 
-        // Draw text
-        string label = $"{_character.ResourceType}: {(int)_character.CurrentResource} / {_character.MaxResource}";
-        spriteBatch.DrawString(_font, label, new Vector2(position.X, position.Y - 40), Color.White);
+        // Resource bar directly under health bar
+        float resourcePercent = _character.GetResourcePercentage();
+        int resourceY = y + healthBarHeight + spacing;
+        Color resourceColor;
+        string classLabel;
+        switch (_character.Class)
+        {
+            case CharacterClass.Brawler:
+                resourceColor = new Color(255, 140, 0); // Orange for Rage
+                classLabel = "Brawler";
+                break;
+            case CharacterClass.Ranger:
+                resourceColor = new Color(0, 200, 80); // Green for Energy
+                classLabel = "Ranger";
+                break;
+            case CharacterClass.Spellcaster:
+                resourceColor = new Color(0, 200, 220); // Teal/Light Blue for Mana
+                classLabel = "Spellcaster";
+                break;
+            default:
+                resourceColor = Color.Gray;
+                classLabel = _character.Class.ToString();
+                break;
+        }
+        // Draw resource bar background
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, resourceY, barWidth, resourceBarHeight), Color.Black);
+        // Draw resource fill
+        int resourceFillWidth = (int)(barWidth * resourcePercent);
+        if (resourceFillWidth > 0)
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, resourceY, resourceFillWidth, resourceBarHeight), resourceColor);
+        // Draw border
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, resourceY, barWidth, border), borderColor); // Top
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, resourceY + resourceBarHeight - border, barWidth, border), borderColor); // Bottom
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, resourceY, border, resourceBarHeight), borderColor); // Left
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x + barWidth - border, resourceY, border, resourceBarHeight), borderColor); // Right
+        // Draw class label (left)
+        Vector2 classSize = _font.MeasureString(classLabel);
+        spriteBatch.DrawString(_font, classLabel, new Vector2(x + 8, resourceY + (resourceBarHeight - classSize.Y) / 2), textColor);
+        // Draw resource value (right)
+        string resourceLabel = $" {(int)_character.CurrentResource} / {_character.MaxResource}";
+        Vector2 resourceValueSize = _font.MeasureString(resourceLabel);
+        spriteBatch.DrawString(_font, resourceLabel, new Vector2(x + barWidth - resourceValueSize.X - 8, resourceY + (resourceBarHeight - resourceValueSize.Y) / 2), textColor);
     }
 
     /// <summary>
@@ -342,6 +403,22 @@ public class TrainingGroundsState : GameState
         _trainingDummyRenderer?.Dispose();
         _basicEffect?.Dispose();
         _whiteTexture?.Dispose();
+    }
+
+    // Helper to get display name for resource type
+    private string GetResourceTypeDisplayName(ResourceTypeEnum type)
+    {
+        switch (type)
+        {
+            case ResourceTypeEnum.Mana:
+                return "Mana";
+            case ResourceTypeEnum.Energy:
+                return "Energy";
+            case ResourceTypeEnum.Frenzy:
+                return "Frenzy";
+            default:
+                return type.ToString();
+        }
     }
 
     private TrainingDummy GetDummyUnderMouse(Point mousePosition)
