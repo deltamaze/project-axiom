@@ -331,7 +331,7 @@ public class TrainingGroundsState : GameState
         Vector2 classSize = _font.MeasureString(classLabel);
         spriteBatch.DrawString(_font, classLabel, new Vector2(x + 8, resourceY + (resourceBarHeight - classSize.Y) / 2), textColor);
         // Draw resource value (right)
-        string resourceLabel = $"{GetResourceTypeDisplayName(_character.ResourceType)}: {(int)_character.CurrentResource} / {_character.MaxResource}";
+        string resourceLabel = $" {(int)_character.CurrentResource} / {_character.MaxResource}";
         Vector2 resourceValueSize = _font.MeasureString(resourceLabel);
         spriteBatch.DrawString(_font, resourceLabel, new Vector2(x + barWidth - resourceValueSize.X - 8, resourceY + (resourceBarHeight - resourceValueSize.Y) / 2), textColor);
     }
