@@ -248,5 +248,74 @@ public static class GeometryBuilder
             // Dummy 3 - Right side  
             new Vector3(8f, GROUND_Y + DUMMY_GROUND_OFFSET, 5f)
         };
+    }    /// <summary>
+    /// Creates vertices and indices for a targeting arrow pointing downward
+    /// </summary>
+    public static (VertexPositionColor[] vertices, short[] indices) CreateTargetingArrow(Color color, float size = 0.5f)
+    {
+        var vertices = new VertexPositionColor[6];
+        
+        // Arrow pointing downward (flipped: tip at bottom, base at top)
+        // Bottom point (tip)
+        vertices[0] = new VertexPositionColor(new Vector3(0f, -size, 0f), color);
+        
+        // Top corners forming a diamond base
+        vertices[1] = new VertexPositionColor(new Vector3(-size * 0.4f, 0f, 0f), color);
+        vertices[2] = new VertexPositionColor(new Vector3(size * 0.4f, 0f, 0f), color);
+        vertices[3] = new VertexPositionColor(new Vector3(0f, 0f, -size * 0.4f), color);
+        vertices[4] = new VertexPositionColor(new Vector3(0f, 0f, size * 0.4f), color);
+        
+        // Center point for the base
+        vertices[5] = new VertexPositionColor(new Vector3(0f, 0f, 0f), color);
+
+        var indices = new short[]
+        {
+            // Arrow faces (triangles from tip to edges)
+            0, 3, 1,  // Tip to back-left
+            0, 2, 3,  // Tip to right-back  
+            0, 4, 2,  // Tip to front-right
+            0, 1, 4,  // Tip to left-front
+            
+            // Base (diamond shape on top)
+            5, 1, 3,  // Center to left-back
+            5, 3, 2,  // Center to back-right
+            5, 2, 4,  // Center to right-front
+            5, 4, 1   // Center to front-left
+        };
+
+        return (vertices, indices);
+    }
+
+    /// <summary>
+    /// Creates vertices and indices for a targeting circle on the ground
+    /// </summary>
+    public static (VertexPositionColor[] vertices, short[] indices) CreateTargetingCircle(Color color, float radius = 1.0f, int segments = 16)
+    {
+        int vertexCount = segments + 1; // segments + center point
+        var vertices = new VertexPositionColor[vertexCount];
+        
+        // Center point
+        vertices[0] = new VertexPositionColor(Vector3.Zero, color);
+        
+        // Circle perimeter points
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = (float)(2 * Math.PI * i / segments);
+            float x = radius * (float)Math.Cos(angle);
+            float z = radius * (float)Math.Sin(angle);
+            vertices[i + 1] = new VertexPositionColor(new Vector3(x, 0f, z), color);
+        }
+
+        // Create triangles from center to each edge
+        var indices = new short[segments * 3];
+        for (int i = 0; i < segments; i++)
+        {
+            int baseIndex = i * 3;
+            indices[baseIndex] = 0; // Center
+            indices[baseIndex + 1] = (short)(i + 1); // Current point
+            indices[baseIndex + 2] = (short)((i + 1) % segments + 1); // Next point (wrap around)
+        }
+
+        return (vertices, indices);
     }
 }
