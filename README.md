@@ -157,16 +157,8 @@ Players choose one of three base classes, each with its own thematic focus, armo
     * When the ability is used (e.g., pressing '1'), if a dummy is targeted and in range, reduce the dummy's health.
     * Implement a basic resource cost (**Frenzy**) for using "**Slam**."
     * Implement a short cooldown for "**Slam**."
-13. **Implement ONE Basic Spell/Attack (Ranger - "Multi-shot"):**
-    * If **Ranger** is chosen: Design a simple ranged "**Multi-shot**" ability.
-    * When the ability is used, if a dummy is targeted, "fire" a projectile (can be a small cube for now) that reduces the dummy's health on impact.
-    * Implement a basic resource cost (**Energy**) for "**Multi-shot**."
-    * Implement a short cooldown for "**Multi-shot**."
-14. **Implement ONE Basic Spell/Attack (Spellcaster - "Magic Missile"):**
-    * If **Spellcaster** is chosen: Design a simple ranged "**Magic Missile**" ability.
-    * When the ability is used, if a dummy is targeted, "fire" a projectile that reduces the dummy's health on impact.
-    * Implement a basic resource cost (**Mana**) for "**Magic Missile**."
-    * Implement a short cooldown for "**Magic Missile**."
+13. **Skip:**
+14. **Skip:**
 15. **Basic "Death" State for Dummies:**
     * When a dummy's health reaches zero, make it disappear or change appearance to indicate it's defeated.
 16. **(Optional) Dummy Respawn:**
@@ -239,6 +231,16 @@ Players choose one of three base classes, each with its own thematic focus, armo
     * Implement basic logging on the server (e.g., writing to a text file or the console). Log important events: server start, player connect/disconnect, session creation, and potential errors. This is invaluable for debugging.
 36. **Basic Player Respawn (Server-Side):**
     * Move the death/respawn logic (Steps 15-17) to the server. When a player's or dummy's health reaches zero, the server marks them as "dead" and starts a respawn timer. When the timer completes, the server changes their state back to "alive," sets their health to full, moves them to a spawn point, and informs all clients of these changes.
+37. **Implement ONE Basic Spell/Attack (Ranger - "Multi-shot"):**
+    * If **Ranger** is chosen: Design a simple ranged "**Multi-shot**" ability.
+    * When the ability is used, if a dummy is targeted, "fire" a projectile (can be a small cube for now) that reduces the dummy's health on impact.
+    * Implement a basic resource cost (**Energy**) for "**Multi-shot**."
+    * Implement a short cooldown for "**Multi-shot**."
+38. **Implement ONE Basic Spell/Attack (Spellcaster - "Magic Missile"):**
+    * If **Spellcaster** is chosen: Design a simple ranged "**Magic Missile**" ability.
+    * When the ability is used, if a dummy is targeted, "fire" a projectile that reduces the dummy's health on impact.
+    * Implement a basic resource cost (**Mana**) for "**Magic Missile**."
+    * Implement a short cooldown for "**Magic Missile**."
 ---
 
 ### 7. AI/LLM Integration Strategy
