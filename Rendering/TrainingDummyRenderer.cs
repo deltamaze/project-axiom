@@ -12,6 +12,17 @@ public class TrainingDummyRenderer
     private short[] _indices;
     private SpriteFont _font;
 
+    // Targeting indicator geometry and buffers
+    private VertexBuffer _arrowVertexBuffer;
+    private IndexBuffer _arrowIndexBuffer;
+    private VertexPositionColor[] _arrowVertices;
+    private short[] _arrowIndices;
+    
+    private VertexBuffer _circleVertexBuffer;
+    private IndexBuffer _circleIndexBuffer;
+    private VertexPositionColor[] _circleVertices;
+    private short[] _circleIndices;
+
     public TrainingDummyRenderer(GraphicsDevice graphicsDevice, SpriteFont font)
     {
         _graphicsDevice = graphicsDevice;
@@ -36,7 +47,30 @@ public class TrainingDummyRenderer
         _vertexBuffer.SetData(_vertices);
 
         _indexBuffer = new IndexBuffer(_graphicsDevice, typeof(short), _indices.Length, BufferUsage.WriteOnly);
-        _indexBuffer.SetData(_indices);
+        _indexBuffer.SetData(_indices);        // Initialize targeting indicators
+        InitializeTargetingIndicators(Color.Red);
+    }    /// <summary>
+    /// Initialize the geometry for targeting indicators (arrow and circle)
+    /// </summary>
+    private void InitializeTargetingIndicators(Color color)
+    {
+        // Create arrow geometry using GeometryBuilder
+        (_arrowVertices, _arrowIndices) = GeometryBuilder.CreateTargetingArrow(color, 0.8f);
+        
+        _arrowVertexBuffer = new VertexBuffer(_graphicsDevice, typeof(VertexPositionColor), _arrowVertices.Length, BufferUsage.WriteOnly);
+        _arrowVertexBuffer.SetData(_arrowVertices);
+
+        _arrowIndexBuffer = new IndexBuffer(_graphicsDevice, typeof(short), _arrowIndices.Length, BufferUsage.WriteOnly);
+        _arrowIndexBuffer.SetData(_arrowIndices);
+
+        // Create circle geometry using GeometryBuilder
+        (_circleVertices, _circleIndices) = GeometryBuilder.CreateTargetingCircle(color, 1.5f, 16);
+        
+        _circleVertexBuffer = new VertexBuffer(_graphicsDevice, typeof(VertexPositionColor), _circleVertices.Length, BufferUsage.WriteOnly);
+        _circleVertexBuffer.SetData(_circleVertices);
+
+        _circleIndexBuffer = new IndexBuffer(_graphicsDevice, typeof(short), _circleIndices.Length, BufferUsage.WriteOnly);
+        _circleIndexBuffer.SetData(_circleIndices);
     }
 
     /// <summary>
@@ -97,6 +131,9 @@ public class TrainingDummyRenderer
                 {
                     // Draw with highlight (e.g., yellow overlay)
                     DrawDummyWithHighlight(basicEffect, dummy.Position);
+                      // Draw targeting indicators
+                    DrawTargetingArrow(basicEffect, dummy.Position + new Vector3(0, 2.5f, 0), Color.Red);
+                    DrawTargetingCircle(basicEffect, new Vector3(dummy.Position.X, GeometryBuilder.GROUND_Y + 0.05f, dummy.Position.Z), Color.Red * 0.7f);
                 }
                 else
                 {
@@ -104,6 +141,74 @@ public class TrainingDummyRenderer
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Draw a targeting arrow above the specified position
+    /// </summary>
+    private void DrawTargetingArrow(BasicEffect basicEffect, Vector3 position, Color color)
+    {
+        // Set up the graphics device for arrow rendering
+        _graphicsDevice.SetVertexBuffer(_arrowVertexBuffer);
+        _graphicsDevice.Indices = _arrowIndexBuffer;
+
+        // Create world matrix with arrow position
+        Matrix world = Matrix.CreateTranslation(position);
+        basicEffect.World = world;
+
+        // Temporarily override color
+        var prevColor = basicEffect.DiffuseColor;
+        basicEffect.DiffuseColor = color.ToVector3();
+
+        // Draw the arrow
+        foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            _graphicsDevice.DrawIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                0,
+                0,
+                _arrowIndices.Length / 3);
+        }
+
+        // Restore previous color
+        basicEffect.DiffuseColor = prevColor;
+    }    /// <summary>
+    /// Draw a targeting circle at the specified position (on the ground)
+    /// </summary>
+    private void DrawTargetingCircle(BasicEffect basicEffect, Vector3 position, Color color)
+    {
+        // Store current blend state to enable transparency
+        var previousBlendState = _graphicsDevice.BlendState;
+        _graphicsDevice.BlendState = BlendState.AlphaBlend;
+
+        // Set up the graphics device for circle rendering
+        _graphicsDevice.SetVertexBuffer(_circleVertexBuffer);
+        _graphicsDevice.Indices = _circleIndexBuffer;
+
+        // Create world matrix with circle position
+        Matrix world = Matrix.CreateTranslation(position);
+        basicEffect.World = world;
+
+        // Temporarily override color
+        var prevColor = basicEffect.DiffuseColor;
+        basicEffect.DiffuseColor = color.ToVector3();
+
+        // Draw the circle
+        foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            _graphicsDevice.DrawIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                0,
+                0,
+                _circleIndices.Length / 3);
+        }
+
+        // Restore previous state
+        basicEffect.DiffuseColor = prevColor;
+        _graphicsDevice.BlendState = previousBlendState;
+        basicEffect.DiffuseColor = prevColor;
     }
 
     /// <summary>
@@ -186,11 +291,44 @@ public class TrainingDummyRenderer
     }
 
     /// <summary>
+    /// Update targeting indicator colors for different target types
+    /// </summary>
+    public void UpdateTargetingIndicatorColors(Color color)
+    {
+        // Dispose old buffers
+        _arrowVertexBuffer?.Dispose();
+        _arrowIndexBuffer?.Dispose();
+        _circleVertexBuffer?.Dispose();
+        _circleIndexBuffer?.Dispose();
+
+        // Recreate with new color
+        (_arrowVertices, _arrowIndices) = GeometryBuilder.CreateTargetingArrow(color, 0.8f);
+        
+        _arrowVertexBuffer = new VertexBuffer(_graphicsDevice, typeof(VertexPositionColor), _arrowVertices.Length, BufferUsage.WriteOnly);
+        _arrowVertexBuffer.SetData(_arrowVertices);
+
+        _arrowIndexBuffer = new IndexBuffer(_graphicsDevice, typeof(short), _arrowIndices.Length, BufferUsage.WriteOnly);
+        _arrowIndexBuffer.SetData(_arrowIndices);
+
+        (_circleVertices, _circleIndices) = GeometryBuilder.CreateTargetingCircle(color, 1.5f, 16);
+        
+        _circleVertexBuffer = new VertexBuffer(_graphicsDevice, typeof(VertexPositionColor), _circleVertices.Length, BufferUsage.WriteOnly);
+        _circleVertexBuffer.SetData(_circleVertices);
+
+        _circleIndexBuffer = new IndexBuffer(_graphicsDevice, typeof(short), _circleIndices.Length, BufferUsage.WriteOnly);
+        _circleIndexBuffer.SetData(_circleIndices);
+    }
+
+    /// <summary>
     /// Dispose of graphics resources
     /// </summary>
     public void Dispose()
     {
         _vertexBuffer?.Dispose();
         _indexBuffer?.Dispose();
+        _arrowVertexBuffer?.Dispose();
+        _arrowIndexBuffer?.Dispose();
+        _circleVertexBuffer?.Dispose();
+        _circleIndexBuffer?.Dispose();
     }
 }
