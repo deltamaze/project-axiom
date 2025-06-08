@@ -122,7 +122,7 @@ public class Character
         switch (Class)
         {
             case CharacterClass.Brawler:
-                return Color.DarkRed;     // Rage - dark red
+                return Color.DarkRed;     // Frenzy - dark red
             case CharacterClass.Ranger:
                 return Color.Gold;       // Energy - gold/yellow
             case CharacterClass.Spellcaster:
@@ -162,7 +162,7 @@ public class Character
         switch (Class)
         {
             case CharacterClass.Brawler:
-                return 5f;   // Rage regenerates slowly
+                return 5f;   // Frenzy regenerates slowly
             case CharacterClass.Ranger:
                 return 15f;  // Energy regenerates quickly
             case CharacterClass.Spellcaster:

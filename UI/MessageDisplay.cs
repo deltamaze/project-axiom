@@ -46,6 +46,22 @@ public class MessageDisplay
     }
 
     /// <summary>
+    /// Add an "On Cooldown" message
+    /// </summary>
+    public void ShowOnCooldownMessage()
+    {
+        AddMessage("On Cooldown!", 2.0f, Color.Orange, MessagePosition.Center);
+    }
+
+    /// <summary>
+    /// Add a "Not Enough [Resource]" message
+    /// </summary>
+    public void ShowNotEnoughResourceMessage(string resourceType)
+    {
+        AddMessage($"Not Enough {resourceType}!", 2.0f, Color.Blue, MessagePosition.Center);
+    }
+
+    /// <summary>
     /// Get all current messages
     /// </summary>
     public List<TemporaryMessage> GetMessages()

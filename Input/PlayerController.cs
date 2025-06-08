@@ -111,7 +111,6 @@ public class PlayerController
       }
     }
   }
-
   /// <summary>
   /// Attempt to cast a spell from the specified slot
   /// </summary>
@@ -130,10 +129,23 @@ public class PlayerController
     {
       System.Diagnostics.Debug.WriteLine($"Failed to cast spell: {result.FailureReason}");
       
-      // Show "Out of Range" message if applicable
-      if (result.FailureReason == "Out of range" && MessageDisplay != null)
+      // Show appropriate message based on failure reason
+      if (MessageDisplay != null)
       {
-        MessageDisplay.ShowOutOfRangeMessage();
+        switch (result.FailureReason)
+        {
+          case "Out of range":
+            MessageDisplay.ShowOutOfRangeMessage();
+            break;
+          case "Spell is on cooldown":
+            MessageDisplay.ShowOnCooldownMessage();
+            break;
+          case "Not enough resource":
+            MessageDisplay.ShowNotEnoughResourceMessage(_character.ResourceType.ToString());
+            break;
+          // For other failure reasons (like "No spell equipped", "Wrong class"), 
+          // we don't show UI messages as they're more system-level issues
+        }
       }
     }
   }
