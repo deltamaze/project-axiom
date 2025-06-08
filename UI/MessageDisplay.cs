@@ -35,14 +35,12 @@ public class MessageDisplay
             Color = color,
             Position = position
         });
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Add an "Out of Range" message
     /// </summary>
     public void ShowOutOfRangeMessage()
     {
-        AddMessage("Out of Range!", 2.0f, Color.Red, MessagePosition.Center);
+        AddMessage("Out of Range!", 2.0f, Color.Red, MessagePosition.PlayerRight);
     }
 
     /// <summary>
@@ -50,7 +48,7 @@ public class MessageDisplay
     /// </summary>
     public void ShowOnCooldownMessage()
     {
-        AddMessage("On Cooldown!", 2.0f, Color.Orange, MessagePosition.Center);
+        AddMessage("On Cooldown!", 2.0f, Color.Orange, MessagePosition.PlayerRight);
     }
 
     /// <summary>
@@ -58,7 +56,7 @@ public class MessageDisplay
     /// </summary>
     public void ShowNotEnoughResourceMessage(string resourceType)
     {
-        AddMessage($"Not Enough {resourceType}!", 2.0f, Color.Blue, MessagePosition.Center);
+        AddMessage($"Not Enough {resourceType}!", 2.0f, Color.Blue, MessagePosition.PlayerRight);
     }
 
     /// <summary>
@@ -90,15 +88,25 @@ public class TemporaryMessage
     public MessagePosition Position { get; set; }
 
     /// <summary>
-    /// Get the alpha value based on time remaining (fades out in last 0.5 seconds)
+    /// Get the alpha value based on time remaining (fades out gradually over full duration)
     /// </summary>
     public float GetAlpha()
     {
-        if (TimeRemaining <= 0.5f)
+        // For scrolling messages, fade out over the last 25% of duration
+        float fadeStartTime = TotalDuration * 0.25f;
+        if (TimeRemaining <= fadeStartTime)
         {
-            return TimeRemaining / 0.5f; // Fade out
+            return TimeRemaining / fadeStartTime;
         }
         return 1.0f;
+    }
+
+    /// <summary>
+    /// Get the animation progress (0.0 = start, 1.0 = end) for scrolling animations
+    /// </summary>
+    public float GetAnimationProgress()
+    {
+        return 1.0f - (TimeRemaining / TotalDuration);
     }
 }
 
@@ -111,5 +119,6 @@ public enum MessagePosition
     Top,
     Bottom,
     Left,
-    Right
+    Right,
+    PlayerRight  // New position: to the right of player, animated scrolling
 }

@@ -560,9 +560,7 @@ public class TrainingGroundsState : GameState
             }
         }
         return closestDummy;
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Draw temporary messages like "Out of Range"
     /// </summary>
     private void DrawMessages(SpriteBatch spriteBatch)
@@ -596,6 +594,43 @@ public class TrainingGroundsState : GameState
                         (_graphicsDevice.Viewport.Width - messageSize.X) / 2,
                         _graphicsDevice.Viewport.Height - messageSize.Y - 100
                     );
+                    break;
+
+                case MessagePosition.PlayerRight:
+                    // Get player position in screen coordinates
+                    Vector3 playerScreenPos = _graphicsDevice.Viewport.Project(
+                        _playerController.Position, 
+                        _cameraController.Projection, 
+                        _cameraController.View, 
+                        Matrix.Identity);
+
+                    // Animation parameters
+                    float animProgress = message.GetAnimationProgress();
+                    float screenHeight = _graphicsDevice.Viewport.Height;
+                    
+                    // Base position: to the right of player, in bottom half of screen
+                    float baseX = playerScreenPos.X + 100; // 100 pixels to the right of player
+                    float baseY = Math.Max(playerScreenPos.Y, screenHeight * 0.5f); // Ensure bottom half
+                    
+                    // Create scrolling animation: up and out, then up and in
+                    float animX, animY;
+                    
+                    if (animProgress < 0.5f)
+                    {
+                        // First half: scroll up and out (to the right)
+                        float t = animProgress * 2.0f; // 0 to 1 over first half
+                        animX = baseX + (t * 50); // Move 50 pixels to the right
+                        animY = baseY - (t * 40); // Move 40 pixels up
+                    }
+                    else
+                    {
+                        // Second half: continue up and in (back toward player)
+                        float t = (animProgress - 0.5f) * 2.0f; // 0 to 1 over second half
+                        animX = (baseX + 50) - (t * 25); // Move 25 pixels back toward player
+                        animY = (baseY - 40) - (t * 30); // Continue moving up 30 more pixels
+                    }
+                    
+                    position = new Vector2(animX, animY);
                     break;
                     
                 default:
