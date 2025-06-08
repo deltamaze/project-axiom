@@ -1,3 +1,6 @@
+using project_axiom.Spells;
+using project_axiom.UI;
+
 namespace project_axiom.Input;
 
 /// <summary>
@@ -23,6 +26,13 @@ public class PlayerController
   // Graphics device for mouse positioning
   private GraphicsDevice _graphicsDevice;
 
+  // Spell casting system
+  private SpellCastingSystem _spellCastingSystem;
+  
+  // Reference to current target and message display (set externally)
+  public TrainingDummy CurrentTarget { get; set; }
+  public MessageDisplay MessageDisplay { get; set; }
+
   // Constants
   private const float PLAYER_GROUND_OFFSET = 0.51f;
 
@@ -40,6 +50,9 @@ public class PlayerController
 
     // Center the mouse cursor initially
     CenterMouse();
+
+    // Initialize spell casting system
+    _spellCastingSystem = new SpellCastingSystem();
   }
 
   /// <summary>
@@ -67,8 +80,14 @@ public class PlayerController
     // Handle movement
     HandleMovement(currentKeyboardState, deltaTime);
 
+    // Handle spell casting
+    HandleSpellCasting(currentKeyboardState);
+
     // Handle resource testing (Section 6.8 - for demonstration purposes)
     HandleResourceTesting(currentKeyboardState);
+
+    // Update spell system
+    _spellCastingSystem.Update(deltaTime);
 
     // Update previous states
     _previousKeyboardState = currentKeyboardState;
@@ -76,17 +95,67 @@ public class PlayerController
   }
 
   /// <summary>
+  /// Handle spell casting input (1-8 keys)
+  /// </summary>
+  private void HandleSpellCasting(KeyboardState keyboardState)
+  {
+    // Check for spell slot keys (1-8)
+    Keys[] spellKeys = { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8 };
+    
+    for (int i = 0; i < spellKeys.Length; i++)
+    {
+      if (keyboardState.IsKeyDown(spellKeys[i]) && !_previousKeyboardState.IsKeyDown(spellKeys[i]))
+      {
+        TryCastSpell(i);
+        break; // Only cast one spell per frame
+      }
+    }
+  }
+
+  /// <summary>
+  /// Attempt to cast a spell from the specified slot
+  /// </summary>
+  private void TryCastSpell(int slotIndex)
+  {
+    var result = _spellCastingSystem.TryCastSpell(slotIndex, _character, CurrentTarget, Position);
+    
+    if (result.Success)
+    {
+      System.Diagnostics.Debug.WriteLine($"Cast {result.SpellCast.Name} for {result.DamageDealt} damage!");
+      
+      // Notify external systems about successful spell cast
+      OnSpellCast?.Invoke(slotIndex, result.SpellCast);
+    }
+    else
+    {
+      System.Diagnostics.Debug.WriteLine($"Failed to cast spell: {result.FailureReason}");
+      
+      // Show "Out of Range" message if applicable
+      if (result.FailureReason == "Out of range" && MessageDisplay != null)
+      {
+        MessageDisplay.ShowOutOfRangeMessage();
+      }
+    }
+  }
+
+  /// <summary>
+  /// Get the spell casting system
+  /// </summary>
+  public SpellCastingSystem GetSpellCastingSystem()
+  {
+    return _spellCastingSystem;
+  }
+
+  /// <summary>
+  /// Event fired when a spell is successfully cast
+  /// </summary>
+  public event System.Action<int, SpellData> OnSpellCast;
+  /// <summary>
   /// Handle resource testing keys for demonstration (Section 6.8)
   /// </summary>
   private void HandleResourceTesting(KeyboardState keyboardState)
   {
-    // Test resource consumption with number keys 1-3
-    if (keyboardState.IsKeyDown(Keys.D1) && !_previousKeyboardState.IsKeyDown(Keys.D1))
-    {
-      // Test light resource consumption
-      _character.TryConsumeResource(10f);
-      System.Diagnostics.Debug.WriteLine($"Light ability used - {_character.ResourceType}: {_character.CurrentResource:F1}/{_character.MaxResource}");
-    }
+    // Note: D1 is now used for spell casting, so we start with D2
     
     if (keyboardState.IsKeyDown(Keys.D2) && !_previousKeyboardState.IsKeyDown(Keys.D2))
     {
@@ -225,7 +294,6 @@ public class PlayerController
   {
     Position = position;
   }
-
   /// <summary>
   /// Get class-specific tip for UI display
   /// </summary>
@@ -234,11 +302,11 @@ public class PlayerController
     switch (_character.Class)
     {
       case CharacterClass.Brawler:
-        return "Tip: Brawlers are tough but slower. Get close to enemies! (Press 1/2/3 to test Rage consumption, R to restore)";
+        return "Tip: Brawlers are tough but slower. Get close to enemies! (Press 1 to Slam, 2/3 to test Frenzy consumption, R to restore)";
       case CharacterClass.Ranger:
-        return "Tip: Rangers are fast and agile. Keep your distance! (Press 1/2/3 to test Energy consumption, R to restore)";
+        return "Tip: Rangers are fast and agile. Keep your distance! (Press 2/3 to test Energy consumption, R to restore)";
       case CharacterClass.Spellcaster:
-        return "Tip: Spellcasters have powerful magic. Manage your mana wisely! (Press 1/2/3 to test Mana consumption, R to restore)";
+        return "Tip: Spellcasters have powerful magic. Manage your mana wisely! (Press 2/3 to test Mana consumption, R to restore)";
       default:
         return "";
     }

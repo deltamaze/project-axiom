@@ -1,3 +1,6 @@
+using project_axiom.UI;
+using project_axiom.Spells;
+
 namespace project_axiom.GameStates;
 
 public class TrainingGroundsState : GameState
@@ -35,10 +38,18 @@ public class TrainingGroundsState : GameState
     private float _playerMaxHealth = 100f;
     private float _playerCurrentHealth = 100f;
 
+    // UI components for spell system
+    private SpellBarState _spellBarState;
+    private MessageDisplay _messageDisplay;
+
     public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, Character character)
         : base(game, graphicsDevice, content)
     {
         _character = character ?? new Character("Default", CharacterClass.Brawler);
+        
+        // Initialize UI systems
+        _spellBarState = new SpellBarState();
+        _messageDisplay = new MessageDisplay();
     }
 
     public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
@@ -96,6 +107,21 @@ public class TrainingGroundsState : GameState
         // Initialize player controller with starting position
         Vector3 startPosition = new Vector3(0, GeometryBuilder.GROUND_Y + PLAYER_GROUND_OFFSET, 0);
         _playerController = new PlayerController(_graphicsDevice, _character, startPosition);
+        
+        // Connect player controller to UI systems
+        _playerController.MessageDisplay = _messageDisplay;
+        _playerController.OnSpellCast += OnPlayerSpellCast;
+    }
+
+    /// <summary>
+    /// Handle spell cast events from player
+    /// </summary>
+    private void OnPlayerSpellCast(int slotIndex, SpellData spell)
+    {
+        // Flash the spell bar slot
+        _spellBarState.FlashSlot(slotIndex);
+        
+        System.Diagnostics.Debug.WriteLine($"Spell cast visual feedback for slot {slotIndex + 1}: {spell.Name}");
     }
 
     /// <summary>
@@ -148,6 +174,16 @@ public class TrainingGroundsState : GameState
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _character.RegenerateResource(deltaTime);
 
+        // Update UI systems
+        _spellBarState.Update(deltaTime);
+        _messageDisplay.Update(deltaTime);
+
+        // Update spell bar visual states based on cooldowns
+        UpdateSpellBarVisuals();
+
+        // Set current target for player controller
+        _playerController.CurrentTarget = _targetedDummy;
+
         // Update training dummies (placeholder for future logic)
         UpdateTrainingDummies(gameTime);
 
@@ -176,6 +212,26 @@ public class TrainingGroundsState : GameState
                 // Could add a respawn timer here in the future
                 // For now, keep them "alive" for testing
                 dummy.Reset();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Update spell bar visual states based on spell cooldowns
+    /// </summary>
+    private void UpdateSpellBarVisuals()
+    {
+        var spellSystem = _playerController.GetSpellCastingSystem();
+        
+        for (int i = 0; i < 8; i++)
+        {
+            if (spellSystem.IsSpellOnCooldown(i))
+            {
+                _spellBarState.SetSlotOnCooldown(i);
+            }
+            else if (_spellBarState.GetSlotState(i) == SlotState.OnCooldown)
+            {
+                _spellBarState.SetSlotReady(i);
             }
         }
     }
@@ -210,9 +266,7 @@ public class TrainingGroundsState : GameState
         // Reset render states
         _graphicsDevice.BlendState = BlendState.Opaque;
         _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Draw the user interface elements
     /// </summary>
     private void DrawUI(SpriteBatch spriteBatch)
@@ -230,8 +284,11 @@ public class TrainingGroundsState : GameState
             spriteBatch.DrawString(_font, info, new Vector2((_graphicsDevice.Viewport.Width - size.X) / 2, 10), Color.Yellow);
         }
 
-        // Draw placeholder spell bar UI (8 slots)
+        // Draw spell bar UI with visual feedback
         DrawSpellBar(spriteBatch);
+
+        // Draw temporary messages (like "Out of Range")
+        DrawMessages(spriteBatch);
 
         spriteBatch.End();
 
@@ -337,10 +394,8 @@ public class TrainingGroundsState : GameState
         string resourceLabel = $"{(int)_character.CurrentResource} / {_character.MaxResource}";
         Vector2 resourceValueSize = _font.MeasureString(resourceLabel);
         spriteBatch.DrawString(_font, resourceLabel, new Vector2(x + healthBarWidth - resourceValueSize.X - 8, resourceY + (resourceBarHeight - resourceValueSize.Y) / 2), textColor);
-    }
-
-    /// <summary>
-    /// Draw the placeholder spell bar UI with 8 empty slots
+    }    /// <summary>
+    /// Draw the spell bar UI with visual feedback for cooldowns and flashing
     /// </summary>
     private void DrawSpellBar(SpriteBatch spriteBatch)
     {
@@ -351,22 +406,83 @@ public class TrainingGroundsState : GameState
         int totalWidth = slotCount * slotWidth + (slotCount - 1) * slotSpacing;
         int startX = (_graphicsDevice.Viewport.Width - totalWidth) / 2;
         int y = _graphicsDevice.Viewport.Height - slotHeight - 32;
+        
+        var spellSystem = _playerController.GetSpellCastingSystem();
+        
         for (int i = 0; i < slotCount; i++)
         {
             int x = startX + i * (slotWidth + slotSpacing);
             Rectangle rect = new Rectangle(x, y, slotWidth, slotHeight);
-            spriteBatch.Draw(_whiteTexture, rect, Color.DarkSlateGray);
+            
+            // Determine slot color based on state
+            Color slotColor = Color.DarkSlateGray;
+            Color borderColor = Color.White;
+            
+            SlotState state = _spellBarState.GetSlotState(i);
+            switch (state)
+            {
+                case SlotState.Flashing:
+                    // Flash between normal and bright colors
+                    float flashIntensity = _spellBarState.GetFlashIntensity(i);
+                    slotColor = Color.Lerp(Color.DarkSlateGray, Color.Gold, flashIntensity);
+                    borderColor = Color.Lerp(Color.White, Color.Yellow, flashIntensity);
+                    break;
+                    
+                case SlotState.OnCooldown:
+                    slotColor = Color.DarkGray;
+                    borderColor = Color.Gray;
+                    break;
+                    
+                case SlotState.Ready:
+                default:
+                    // Check if we have a spell in this slot and show different color
+                    var spell = spellSystem.GetEquippedSpell(i);
+                    if (spell != null)
+                    {
+                        slotColor = Color.DarkSlateBlue; // Indicate spell is equipped
+                    }
+                    break;
+            }
+            
+            // Draw slot background
+            spriteBatch.Draw(_whiteTexture, rect, slotColor);
+            
+            // Draw cooldown overlay if applicable
+            if (state == SlotState.OnCooldown)
+            {
+                float cooldownProgress = spellSystem.GetSpellCooldownProgress(i);
+                if (cooldownProgress > 0)
+                {
+                    int cooldownHeight = (int)(slotHeight * cooldownProgress);
+                    Rectangle cooldownRect = new Rectangle(x, y + slotHeight - cooldownHeight, slotWidth, cooldownHeight);
+                    spriteBatch.Draw(_whiteTexture, cooldownRect, Color.Black * 0.7f);
+                }
+            }
+            
             // Draw border
             int border = 2;
-            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, slotWidth, border), Color.White); // Top
-            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y + slotHeight - border, slotWidth, border), Color.White); // Bottom
-            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, slotHeight), Color.White); // Left
-            spriteBatch.Draw(_whiteTexture, new Rectangle(x + slotWidth - border, y, border, slotHeight), Color.White); // Right
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, slotWidth, border), borderColor); // Top
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y + slotHeight - border, slotWidth, border), borderColor); // Bottom
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, slotHeight), borderColor); // Left
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x + slotWidth - border, y, border, slotHeight), borderColor); // Right
+            
             // Draw slot number
             string num = (i + 1).ToString();
             Vector2 numSize = _font.MeasureString(num);
             Vector2 numPos = new Vector2(x + (slotWidth - numSize.X) / 2, y + slotHeight - numSize.Y - 4);
             spriteBatch.DrawString(_font, num, numPos, Color.LightGray);
+            
+            // Draw spell name if equipped
+            var equippedSpell = spellSystem.GetEquippedSpell(i);
+            if (equippedSpell != null)
+            {
+                Vector2 spellNameSize = _font.MeasureString(equippedSpell.Name);
+                if (spellNameSize.X <= slotWidth - 4) // Only draw if it fits
+                {
+                    Vector2 spellNamePos = new Vector2(x + (slotWidth - spellNameSize.X) / 2, y + 4);
+                    spriteBatch.DrawString(_font, equippedSpell.Name, spellNamePos, Color.White);
+                }
+            }
         }
     }
 
@@ -444,5 +560,56 @@ public class TrainingGroundsState : GameState
             }
         }
         return closestDummy;
+    }
+
+    /// <summary>
+    /// Draw temporary messages like "Out of Range"
+    /// </summary>
+    private void DrawMessages(SpriteBatch spriteBatch)
+    {
+        var messages = _messageDisplay.GetMessages();
+        
+        foreach (var message in messages)
+        {
+            Vector2 messageSize = _font.MeasureString(message.Text);
+            Vector2 position;
+            
+            // Calculate position based on message position type
+            switch (message.Position)
+            {
+                case MessagePosition.Center:
+                    position = new Vector2(
+                        (_graphicsDevice.Viewport.Width - messageSize.X) / 2,
+                        (_graphicsDevice.Viewport.Height - messageSize.Y) / 2
+                    );
+                    break;
+                    
+                case MessagePosition.Top:
+                    position = new Vector2(
+                        (_graphicsDevice.Viewport.Width - messageSize.X) / 2,
+                        50
+                    );
+                    break;
+                    
+                case MessagePosition.Bottom:
+                    position = new Vector2(
+                        (_graphicsDevice.Viewport.Width - messageSize.X) / 2,
+                        _graphicsDevice.Viewport.Height - messageSize.Y - 100
+                    );
+                    break;
+                    
+                default:
+                    position = new Vector2(
+                        (_graphicsDevice.Viewport.Width - messageSize.X) / 2,
+                        (_graphicsDevice.Viewport.Height - messageSize.Y) / 2
+                    );
+                    break;
+            }
+            
+            // Apply fade effect
+            Color messageColor = message.Color * message.GetAlpha();
+            
+            spriteBatch.DrawString(_font, message.Text, position, messageColor);
+        }
     }
 }
