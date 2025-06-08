@@ -244,12 +244,14 @@ public class TrainingGroundsState : GameState
     public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
     {
         // Clear screen with sky blue background
-        _graphicsDevice.Clear(new Color(135, 206, 235));
-
-        // Set 3D rendering states
+        _graphicsDevice.Clear(new Color(135, 206, 235));        // Set 3D rendering states
         _graphicsDevice.BlendState = BlendState.Opaque;
         _graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        _graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        _graphicsDevice.RasterizerState = RasterizerState.CullNone; // Disable culling to see all faces
+
+        // Update BasicEffect matrices
+        _basicEffect.View = _cameraController.View;
+        _basicEffect.Projection = _cameraController.Projection;
 
         // Draw 3D environment
         _environmentRenderer.DrawEnvironment(_basicEffect);
