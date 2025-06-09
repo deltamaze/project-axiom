@@ -283,11 +283,9 @@ public class TrainingGroundsState : GameState
         // Draw temporary messages (like "Out of Range")
         DrawMessages(spriteBatch);
 
-        spriteBatch.End();
-
-        // Draw training dummy health bars (3D to 2D projection)
+        spriteBatch.End();        // Draw training dummy health bars (3D to 2D projection)
         spriteBatch.Begin();
-        _trainingDummyRenderer.DrawDummyHealthBars(spriteBatch, _trainingDummies, _cameraController.View, _cameraController.Projection, _targetedDummy);
+        _trainingDummyRenderer.DrawDummyHealthBars(spriteBatch, _trainingDummies, _cameraController.View, _cameraController.Projection, _targetedDummy, _whiteTexture);
         spriteBatch.End();
     }
 

@@ -248,27 +248,23 @@ public class TrainingDummyRenderer
         basicEffect.DiffuseColor = prevColor;
         _graphicsDevice.BlendState = previousBlendState;
         basicEffect.DiffuseColor = prevColor;
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Draw health bars above training dummies (called during 2D UI rendering)
     /// </summary>
-    public void DrawDummyHealthBars(SpriteBatch spriteBatch, List<TrainingDummy> dummies, Matrix view, Matrix projection, TrainingDummy targetedDummy = null)
+    public void DrawDummyHealthBars(SpriteBatch spriteBatch, List<TrainingDummy> dummies, Matrix view, Matrix projection, TrainingDummy targetedDummy = null, Texture2D whiteTexture = null)
     {
         foreach (var dummy in dummies)
         {
             if (dummy.IsAlive)
             {
                 bool highlight = (dummy == targetedDummy);
-                DrawHealthBar(spriteBatch, dummy, view, projection, highlight);
+                DrawHealthBar(spriteBatch, dummy, view, projection, highlight, whiteTexture);
             }
         }
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Draw a health bar above a specific training dummy
     /// </summary>
-    private void DrawHealthBar(SpriteBatch spriteBatch, TrainingDummy dummy, Matrix view, Matrix projection, bool highlight = false)
+    private void DrawHealthBar(SpriteBatch spriteBatch, TrainingDummy dummy, Matrix view, Matrix projection, bool highlight = false, Texture2D whiteTexture = null)
     {
         // Calculate screen position of the dummy
         Vector3 worldPosition = dummy.Position + new Vector3(0, 1.0f, 0); // Offset above dummy
@@ -279,16 +275,19 @@ public class TrainingDummyRenderer
         {
             Vector2 healthBarPosition = new Vector2(screenPosition.X - 30, screenPosition.Y - 20);
             
+            // Use provided white texture or create one if not provided
+            Texture2D textureToUse = whiteTexture ?? CreateSolidColorTexture(_graphicsDevice, Color.White);
+            bool shouldDispose = whiteTexture == null; // Only dispose if we created it
+            
             // Draw health bar background
-            Texture2D healthBarTexture = CreateSolidColorTexture(_graphicsDevice, Color.Black);
             Rectangle backgroundRect = new Rectangle((int)healthBarPosition.X, (int)healthBarPosition.Y, 60, 8);
-            spriteBatch.Draw(healthBarTexture, backgroundRect, highlight ? Color.Yellow : Color.Black);
+            spriteBatch.Draw(textureToUse, backgroundRect, highlight ? Color.Yellow : Color.Black);
 
             // Draw health bar fill
             float healthPercentage = dummy.GetHealthPercentage();
             Color healthColor = healthPercentage > 0.6f ? Color.Green : healthPercentage > 0.3f ? Color.Yellow : Color.Red;
             Rectangle healthRect = new Rectangle((int)healthBarPosition.X + 1, (int)healthBarPosition.Y + 1, (int)((60 - 2) * healthPercentage), 6);
-            spriteBatch.Draw(healthBarTexture, healthRect, healthColor);
+            spriteBatch.Draw(textureToUse, healthRect, healthColor);
 
             // Draw dummy name
             Vector2 namePosition = new Vector2(healthBarPosition.X, healthBarPosition.Y - 20);
@@ -296,7 +295,11 @@ public class TrainingDummyRenderer
             namePosition.X -= (nameSize.X - 60) / 2; // Center the name over the health bar
             spriteBatch.DrawString(_font, dummy.Name, namePosition, highlight ? Color.Yellow : Color.White);
 
-            healthBarTexture.Dispose();
+            // Only dispose if we created the texture
+            if (shouldDispose)
+            {
+                textureToUse.Dispose();
+            }
         }
     }
 
