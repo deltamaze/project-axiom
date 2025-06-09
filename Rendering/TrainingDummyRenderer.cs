@@ -119,6 +119,40 @@ public class TrainingDummyRenderer
     }
 
     /// <summary>
+    /// Draw a dead dummy with darkened/grayed out appearance
+    /// </summary>
+    private void DrawDeadDummy(BasicEffect basicEffect, Vector3 position)
+    {
+        // Set up the graphics device
+        _graphicsDevice.SetVertexBuffer(_vertexBuffer);
+        _graphicsDevice.Indices = _indexBuffer;
+
+        // Create world matrix with dummy position, slightly smaller and tilted
+        Matrix world = Matrix.CreateScale(0.8f) * 
+                      Matrix.CreateRotationZ(MathHelper.ToRadians(15)) * 
+                      Matrix.CreateTranslation(position + new Vector3(0, -0.2f, 0));
+        basicEffect.World = world;
+
+        // Darken the color to show it's dead
+        var prevColor = basicEffect.DiffuseColor;
+        basicEffect.DiffuseColor = new Vector3(0.3f, 0.3f, 0.3f); // Dark gray
+
+        // Draw the dead dummy
+        foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            _graphicsDevice.DrawIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                0,
+                0,
+                _indices.Length / 3);
+        }
+
+        // Restore previous color
+        basicEffect.DiffuseColor = prevColor;
+    }
+
+    /// <summary>
     /// Draw multiple training dummies at their positions
     /// </summary>
     public void DrawDummies(BasicEffect basicEffect, List<TrainingDummy> dummies, TrainingDummy targetedDummy = null)
@@ -139,6 +173,11 @@ public class TrainingDummyRenderer
                 {
                     DrawDummy(basicEffect, dummy.Position);
                 }
+            }
+            else
+            {
+                // Draw dead dummy with different appearance
+                DrawDeadDummy(basicEffect, dummy.Position);
             }
         }
     }

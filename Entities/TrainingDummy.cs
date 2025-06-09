@@ -16,6 +16,10 @@ public class TrainingDummy
     public Color SecondaryColor { get; set; }
     public float Scale { get; set; } = 1.2f; // Slightly larger than player cubes
 
+    // Death state properties
+    public bool IsDead => CurrentHealth <= 0;
+    public DateTime? DeathTime { get; private set; }
+
     public TrainingDummy(Vector3 position, string name = "Training Dummy")
     {
         Position = position;
@@ -36,6 +40,13 @@ public class TrainingDummy
         if (!IsAlive) return false;
 
         CurrentHealth = Math.Max(0, CurrentHealth - damage);
+        
+        // Mark death time when dummy dies
+        if (IsDead && !DeathTime.HasValue)
+        {
+            DeathTime = DateTime.Now;
+        }
+        
         return !IsAlive;
     }
 
@@ -45,6 +56,7 @@ public class TrainingDummy
     public void Reset()
     {
         CurrentHealth = MaxHealth;
+        DeathTime = null;
     }
 
     /// <summary>

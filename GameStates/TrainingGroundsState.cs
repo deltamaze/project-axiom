@@ -182,10 +182,14 @@ public class TrainingGroundsState : GameState
         UpdateSpellBarVisuals();
 
         // Set current target for player controller
-        _playerController.CurrentTarget = _targetedDummy;
-
-        // Update training dummies (placeholder for future logic)
+        _playerController.CurrentTarget = _targetedDummy;        // Update training dummies (placeholder for future logic)
         UpdateTrainingDummies(gameTime);
+
+        // Clear target if the targeted dummy is dead
+        if (_targetedDummy != null && !_targetedDummy.IsAlive)
+        {
+            _targetedDummy = null;
+        }
 
         // Mouse picking for click-to-target
         MouseState mouseState = Mouse.GetState();
@@ -194,26 +198,17 @@ public class TrainingGroundsState : GameState
             _targetedDummy = GetDummyUnderMouse(mouseState.Position);
         }
         _previousMouseState = mouseState;
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Update training dummy logic (placeholder for future expansion)
     /// </summary>
     private void UpdateTrainingDummies(GameTime gameTime)
     {
         // For now, training dummies are static
+        // Dead dummies will stay dead until manually reset
         // Future: Add respawn logic, animations, or other behaviors
-
-        // Example: Auto-reset dummies after being "defeated" for a certain time
-        foreach (var dummy in _trainingDummies)
-        {
-            if (!dummy.IsAlive)
-            {
-                // Could add a respawn timer here in the future
-                // For now, keep them "alive" for testing
-                dummy.Reset();
-            }
-        }
+        
+        // Note: Removed auto-reset functionality to implement proper death state
+        // as per item 15 in the development plan
     }
 
     /// <summary>
