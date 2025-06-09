@@ -271,14 +271,10 @@ public class TrainingGroundsState : GameState
         spriteBatch.Begin();
 
         // Draw player health and resource bars at top left
-        DrawPlayerHealthAndResourceBars(spriteBatch);
-
-        // Show targeted dummy info (centered at top)
+        DrawPlayerHealthAndResourceBars(spriteBatch);        // Draw targeted dummy health bar (centered at top)
         if (_targetedDummy != null && _targetedDummy.IsAlive)
         {
-            string info = $"Target: {_targetedDummy.Name}  HP: {(int)_targetedDummy.CurrentHealth} / {(int)_targetedDummy.MaxHealth}";
-            Vector2 size = _font.MeasureString(info);
-            spriteBatch.DrawString(_font, info, new Vector2((_graphicsDevice.Viewport.Width - size.X) / 2, 10), Color.Yellow);
+            DrawTargetHealthBar(spriteBatch);
         }
 
         // Draw spell bar UI with visual feedback
@@ -392,6 +388,53 @@ public class TrainingGroundsState : GameState
         Vector2 resourceValueSize = _font.MeasureString(resourceLabel);
         spriteBatch.DrawString(_font, resourceLabel, new Vector2(x + healthBarWidth - resourceValueSize.X - 8, resourceY + (resourceBarHeight - resourceValueSize.Y) / 2), textColor);
     }    /// <summary>
+    /// Draw the targeted dummy health bar (centered at top of screen)
+    /// </summary>
+    private void DrawTargetHealthBar(SpriteBatch spriteBatch)
+    {
+        if (_targetedDummy == null || !_targetedDummy.IsAlive) return;
+
+        // Bar settings - same dimensions as player health bar
+        int baseBarWidth = 280;
+        int healthBarWidth = (int)(baseBarWidth * 1.2f); // 20% wider, same as player
+        int healthBarHeight = 36;
+        
+        // Position at top center of screen
+        int x = (_graphicsDevice.Viewport.Width - healthBarWidth) / 2;
+        int y = 10; // Small margin from top
+        
+        float healthPercent = _targetedDummy.GetHealthPercentage();
+        Color healthColor = Color.Red; // Standard enemy/target color
+        Color borderColor = Color.Yellow; // Yellow border to indicate it's the target
+        Color textColor = Color.White;
+        
+        // Draw health bar background
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, healthBarWidth, healthBarHeight), Color.Black);
+        
+        // Draw health fill
+        int fillWidth = (int)(healthBarWidth * healthPercent);
+        if (fillWidth > 0)
+            spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, fillWidth, healthBarHeight), healthColor);
+        
+        // Draw border (yellow to indicate target)
+        int border = 2;
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, healthBarWidth, border), borderColor); // Top
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y + healthBarHeight - border, healthBarWidth, border), borderColor); // Bottom
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x, y, border, healthBarHeight), borderColor); // Left
+        spriteBatch.Draw(_whiteTexture, new Rectangle(x + healthBarWidth - border, y, border, healthBarHeight), borderColor); // Right
+        
+        // Draw target name (left side)
+        string name = _targetedDummy.Name;
+        Vector2 nameSize = _font.MeasureString(name);
+        spriteBatch.DrawString(_font, name, new Vector2(x + 8, y + (healthBarHeight - nameSize.Y) / 2), textColor);
+        
+        // Draw health value (right side)
+        string healthLabel = $"{(int)_targetedDummy.CurrentHealth} / {(int)_targetedDummy.MaxHealth}";
+        Vector2 healthSize = _font.MeasureString(healthLabel);
+        spriteBatch.DrawString(_font, healthLabel, new Vector2(x + healthBarWidth - healthSize.X - 8, y + (healthBarHeight - healthSize.Y) / 2), textColor);
+    }
+
+    /// <summary>
     /// Draw the spell bar UI with visual feedback for cooldowns and flashing
     /// </summary>
     private void DrawSpellBar(SpriteBatch spriteBatch)
