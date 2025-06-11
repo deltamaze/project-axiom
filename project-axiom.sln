@@ -1,8 +1,10 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project-axiom", "project-axiom.csproj", "{B6E812B8-3FE0-ABE7-6C27-7ED94786C44F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project-axiom", "Client\project-axiom.csproj", "{B6E812B8-3FE0-ABE7-6C27-7ED94786C44F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project-axiom-sharelib", "Shared\project-axiom-sharelib.csproj", "{23E263A4-0D22-4CDC-8DB5-1869951A902E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{B6E812B8-3FE0-ABE7-6C27-7ED94786C44F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6E812B8-3FE0-ABE7-6C27-7ED94786C44F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6E812B8-3FE0-ABE7-6C27-7ED94786C44F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23E263A4-0D22-4CDC-8DB5-1869951A902E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23E263A4-0D22-4CDC-8DB5-1869951A902E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23E263A4-0D22-4CDC-8DB5-1869951A902E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23E263A4-0D22-4CDC-8DB5-1869951A902E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
