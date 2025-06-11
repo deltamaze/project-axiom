@@ -1,4 +1,6 @@
-namespace project_axiom.Entities;
+using Microsoft.Xna.Framework;
+
+namespace project_axiom.Shared;
 
 public enum CharacterClass
 {

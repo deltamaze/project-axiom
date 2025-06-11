@@ -11,3 +11,4 @@ global using project_axiom.GameStates;
 global using project_axiom.Input;
 global using project_axiom.Rendering;
 global using project_axiom.UI;
+global using project_axiom.Shared;
