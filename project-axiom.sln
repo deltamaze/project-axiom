@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project-axiom", "Client\pro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project-axiom-sharelib", "Shared\project-axiom-sharelib.csproj", "{23E263A4-0D22-4CDC-8DB5-1869951A902E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "project-axiom-server", "project-axiom-server\project-axiom-server.csproj", "{D01F4CE6-C72A-45C0-A692-FA28B34E2836}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{23E263A4-0D22-4CDC-8DB5-1869951A902E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23E263A4-0D22-4CDC-8DB5-1869951A902E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23E263A4-0D22-4CDC-8DB5-1869951A902E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D01F4CE6-C72A-45C0-A692-FA28B34E2836}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D01F4CE6-C72A-45C0-A692-FA28B34E2836}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D01F4CE6-C72A-45C0-A692-FA28B34E2836}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D01F4CE6-C72A-45C0-A692-FA28B34E2836}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
