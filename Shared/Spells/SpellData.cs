@@ -1,12 +1,14 @@
-namespace project_axiom.Spells;
+using project_axiom.Shared;
+
+namespace project_axiom.Shared.Spells;
 
 /// <summary>
 /// Defines the data structure for a spell/ability
 /// </summary>
 public class SpellData
 {
-    public string Name { get; set; }
-    public string Description { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public float ResourceCost { get; set; }
     public float CooldownDuration { get; set; }
     public float Range { get; set; }

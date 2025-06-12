@@ -8,4 +8,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="PlayFabAllSDK" Version="1.198.250328" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\project-axiom-sharelib.csproj" />
+  </ItemGroup>
+
 </Project>

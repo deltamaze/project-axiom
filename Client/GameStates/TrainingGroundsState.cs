@@ -1,5 +1,7 @@
 using project_axiom.UI;
 using project_axiom.Spells;
+using project_axiom.Shared;
+using project_axiom.Shared.Spells;
 
 namespace project_axiom.GameStates;
 

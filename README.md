@@ -156,7 +156,7 @@ Players choose one of three base classes, each with its own thematic focus, armo
 15. **SDK & Project Scaffolding:**
     * Integrate the PlayFab C# SDK into the client project.
     * Create two new projects: `project-axiom-server` (a Console Application) and `project-axiom-shared` (a Class Library).
-    * Move shared data structures (Vector3, PlayerData, SpellData) into the `project-axiom-shared` project.
+    * Move shared data structures (Character, SpellData) into the `project-axiom-shared` project.
 16. **MVP Authentication:**
     * In the client, create a basic UI for player registration and login.
     * Implement calls to `PlayFabClientAPI.RegisterPlayFabUser` and `LoginWithEmailAddress`.
