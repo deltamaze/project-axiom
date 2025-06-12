@@ -1,4 +1,6 @@
-namespace project_axiom.Spells;
+using System.Collections.Generic;
+
+namespace project_axiom.Shared.Spells;
 
 /// <summary>
 /// Manages spell cooldowns

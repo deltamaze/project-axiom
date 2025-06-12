@@ -1,3 +1,5 @@
+using project_axiom.Shared.Spells;
+
 namespace project_axiom.Spells;
 
 /// <summary>
@@ -139,18 +141,6 @@ public class SpellCastingSystem
     {
         var spell = GetEquippedSpell(slotIndex);
         if (spell == null) return 0f;
-        
-        return _cooldownManager.GetRemainingCooldown(spell.Name);
+          return _cooldownManager.GetRemainingCooldown(spell.Name);
     }
-}
-
-/// <summary>
-/// Result of attempting to cast a spell
-/// </summary>
-public class CastResult
-{
-    public bool Success { get; set; }
-    public string FailureReason { get; set; }
-    public SpellData SpellCast { get; set; }
-    public float DamageDealt { get; set; }
 }

@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+
 namespace project_axiom.UI;
 
 /// <summary>
@@ -6,12 +9,13 @@ namespace project_axiom.UI;
 public class MessageDisplay
 {
     private List<TemporaryMessage> _messages = new List<TemporaryMessage>();
-
-    /// <summary>
+    private Dictionary<string, float> _messageCooldowns = new Dictionary<string, float>();
+    private const float MESSAGE_COOLDOWN_DURATION = 1.0f; // 1 second cooldown for duplicate messages    /// <summary>
     /// Update all messages and remove expired ones
     /// </summary>
     public void Update(float deltaTime)
     {
+        // Update message timers
         for (int i = _messages.Count - 1; i >= 0; i--)
         {
             _messages[i].TimeRemaining -= deltaTime;
@@ -20,9 +24,27 @@ public class MessageDisplay
                 _messages.RemoveAt(i);
             }
         }
-    }
 
-    /// <summary>
+        // Update message cooldowns
+        var cooldownKeysToRemove = new List<string>();
+        foreach (var kvp in _messageCooldowns.ToList())
+        {
+            var newCooldown = kvp.Value - deltaTime;
+            if (newCooldown <= 0)
+            {
+                cooldownKeysToRemove.Add(kvp.Key);
+            }
+            else
+            {
+                _messageCooldowns[kvp.Key] = newCooldown;
+            }
+        }
+
+        foreach (var key in cooldownKeysToRemove)
+        {
+            _messageCooldowns.Remove(key);
+        }
+    }    /// <summary>
     /// Add a temporary message
     /// </summary>
     public void AddMessage(string text, float duration, Color color, MessagePosition position = MessagePosition.Center)
@@ -35,12 +57,33 @@ public class MessageDisplay
             Color = color,
             Position = position
         });
+    }
+
+    /// <summary>
+    /// Check if a message type is on cooldown
+    /// </summary>
+    private bool IsMessageOnCooldown(string messageType)
+    {
+        return _messageCooldowns.ContainsKey(messageType);
+    }
+
+    /// <summary>
+    /// Start cooldown for a message type
+    /// </summary>
+    private void StartMessageCooldown(string messageType)
+    {
+        _messageCooldowns[messageType] = MESSAGE_COOLDOWN_DURATION;
     }    /// <summary>
     /// Add an "Out of Range" message
     /// </summary>
     public void ShowOutOfRangeMessage()
     {
-        AddMessage("Out of Range!", 2.0f, Color.Red, MessagePosition.PlayerRight);
+        const string messageType = "OutOfRange";
+        if (!IsMessageOnCooldown(messageType))
+        {
+            AddMessage("Out of Range!", 2.0f, Color.Red, MessagePosition.PlayerRight);
+            StartMessageCooldown(messageType);
+        }
     }
 
     /// <summary>
@@ -48,7 +91,12 @@ public class MessageDisplay
     /// </summary>
     public void ShowOnCooldownMessage()
     {
-        AddMessage("On Cooldown!", 2.0f, Color.Orange, MessagePosition.PlayerRight);
+        const string messageType = "OnCooldown";
+        if (!IsMessageOnCooldown(messageType))
+        {
+            AddMessage("On Cooldown!", 2.0f, Color.Orange, MessagePosition.PlayerRight);
+            StartMessageCooldown(messageType);
+        }
     }
 
     /// <summary>
@@ -56,7 +104,12 @@ public class MessageDisplay
     /// </summary>
     public void ShowNotEnoughResourceMessage(string resourceType)
     {
-        AddMessage($"Not Enough {resourceType}!", 2.0f, Color.Blue, MessagePosition.PlayerRight);
+        string messageType = $"NotEnough{resourceType}";
+        if (!IsMessageOnCooldown(messageType))
+        {
+            AddMessage($"Not Enough {resourceType}!", 2.0f, Color.Blue, MessagePosition.PlayerRight);
+            StartMessageCooldown(messageType);
+        }
     }
 
     /// <summary>

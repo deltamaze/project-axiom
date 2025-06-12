@@ -1,5 +1,7 @@
 using project_axiom.UI;
 using project_axiom.Spells;
+using project_axiom.Shared;
+using project_axiom.Shared.Spells;
 
 namespace project_axiom.GameStates;
 
@@ -132,12 +134,10 @@ public class TrainingGroundsState : GameState
         _trainingDummies = new List<TrainingDummy>();
 
         // Get predefined positions from GeometryBuilder
-        Vector3[] dummyPositions = GeometryBuilder.GetTrainingDummyPositions();
-
-        // Create training dummies at each position
+        Vector3[] dummyPositions = GeometryBuilder.GetTrainingDummyPositions();        // Create training dummies at each position
         for (int i = 0; i < dummyPositions.Length; i++)
         {
-            var dummy = new TrainingDummy(dummyPositions[i], $"Dummy {i + 1}");
+            var dummy = new TrainingDummy(i, dummyPositions[i], $"Dummy {i + 1}");
             _trainingDummies.Add(dummy);
         }
 
