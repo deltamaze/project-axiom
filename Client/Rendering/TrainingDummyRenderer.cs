@@ -281,11 +281,9 @@ public class TrainingDummyRenderer
             
             // Draw health bar background
             Rectangle backgroundRect = new Rectangle((int)healthBarPosition.X, (int)healthBarPosition.Y, 60, 8);
-            spriteBatch.Draw(textureToUse, backgroundRect, highlight ? Color.Yellow : Color.Black);
-
-            // Draw health bar fill
+            spriteBatch.Draw(textureToUse, backgroundRect, highlight ? Color.Yellow : Color.Black);            // Draw health bar fill
             float healthPercentage = dummy.GetHealthPercentage();
-            Color healthColor = healthPercentage > 0.6f ? Color.Green : healthPercentage > 0.3f ? Color.Yellow : Color.Red;
+            Color healthColor = Color.Red; // Always red color for training dummy health bars
             Rectangle healthRect = new Rectangle((int)healthBarPosition.X + 1, (int)healthBarPosition.Y + 1, (int)((60 - 2) * healthPercentage), 6);
             spriteBatch.Draw(textureToUse, healthRect, healthColor);
 
