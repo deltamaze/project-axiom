@@ -6,7 +6,7 @@ global using System;
 global using System.Collections.Generic;
 global using System.Linq;
 global using project_axiom;
-global using project_axiom.Entities;
+global using project_axiom.Shared.Entities;
 global using project_axiom.GameStates;
 global using project_axiom.Input;
 global using project_axiom.Rendering;

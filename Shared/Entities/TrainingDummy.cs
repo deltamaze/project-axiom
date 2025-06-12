@@ -1,17 +1,20 @@
-namespace project_axiom.Entities;
+using Microsoft.Xna.Framework;
+
+namespace project_axiom.Shared.Entities;
 
 /// <summary>
-/// Represents a static training dummy in the training grounds
+/// Represents a static training dummy - shared between client and server
 /// </summary>
 public class TrainingDummy
 {
+    public int Id { get; set; }
     public Vector3 Position { get; set; }
     public float MaxHealth { get; private set; }
     public float CurrentHealth { get; set; }
     public bool IsAlive => CurrentHealth > 0;
     public string Name { get; set; }
 
-    // Visual properties
+    // Visual properties (client-side usage)
     public Color PrimaryColor { get; set; }
     public Color SecondaryColor { get; set; }
     public float Scale { get; set; } = 1.2f; // Slightly larger than player cubes
@@ -20,8 +23,14 @@ public class TrainingDummy
     public bool IsDead => CurrentHealth <= 0;
     public DateTime? DeathTime { get; private set; }
 
-    public TrainingDummy(Vector3 position, string name = "Training Dummy")
+    public TrainingDummy() : this(0, Vector3.Zero, "Training Dummy")
     {
+        // Parameterless constructor for serialization
+    }
+
+    public TrainingDummy(int id, Vector3 position, string name = "Training Dummy")
+    {
+        Id = id;
         Position = position;
         Name = name;
         MaxHealth = 100f;
@@ -65,5 +74,14 @@ public class TrainingDummy
     public float GetHealthPercentage()
     {
         return MaxHealth > 0 ? CurrentHealth / MaxHealth : 0f;
+    }
+
+    /// <summary>
+    /// Check if the dummy is within targeting range of a position
+    /// </summary>
+    public bool IsInRange(Vector3 sourcePosition, float maxRange)
+    {
+        float distance = Vector3.Distance(sourcePosition, Position);
+        return distance <= maxRange;
     }
 }
