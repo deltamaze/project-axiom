@@ -284,14 +284,17 @@ public class TrainingDummyRenderer
             spriteBatch.Draw(textureToUse, backgroundRect, highlight ? Color.Yellow : Color.Black);            // Draw health bar fill
             float healthPercentage = dummy.GetHealthPercentage();
             Color healthColor = Color.Red; // Always red color for training dummy health bars
-            Rectangle healthRect = new Rectangle((int)healthBarPosition.X + 1, (int)healthBarPosition.Y + 1, (int)((60 - 2) * healthPercentage), 6);
-            spriteBatch.Draw(textureToUse, healthRect, healthColor);
+            Rectangle healthRect = new Rectangle((int)healthBarPosition.X + 1, (int)healthBarPosition.Y + 1, (int)((60 - 2) * healthPercentage), 6);            spriteBatch.Draw(textureToUse, healthRect, healthColor);
 
-            // Draw dummy name
-            Vector2 namePosition = new Vector2(healthBarPosition.X, healthBarPosition.Y - 20);
+            // Draw dummy name (positioned higher above the health bar)
+            Vector2 namePosition = new Vector2(healthBarPosition.X, healthBarPosition.Y - 35);
             Vector2 nameSize = _font.MeasureString(dummy.Name);
             namePosition.X -= (nameSize.X - 60) / 2; // Center the name over the health bar
-            spriteBatch.DrawString(_font, dummy.Name, namePosition, highlight ? Color.Yellow : Color.White);
+            
+            // Draw the name with a smaller scale to make it less prominent
+            Vector2 scale = new Vector2(0.8f, 0.8f); // 80% of original size
+            Vector2 origin = Vector2.Zero;
+            spriteBatch.DrawString(_font, dummy.Name, namePosition, highlight ? Color.Yellow : Color.White, 0f, origin, scale, SpriteEffects.None, 0f);
 
             // Only dispose if we created the texture
             if (shouldDispose)
