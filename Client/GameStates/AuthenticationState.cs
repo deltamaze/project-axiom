@@ -104,9 +104,7 @@ public class AuthenticationState : GameState
             MaxWidth = 600,
             CenterAlign = true
         };
-    }
-
-    private void LoginButton_Click(object sender, EventArgs e)
+    }    private async void LoginButton_Click(object sender, EventArgs e)
     {
         if (_isProcessing) return;
         
@@ -121,16 +119,25 @@ public class AuthenticationState : GameState
         
         _isProcessing = true;
         _messageDisplay.ShowMessage("Logging in...", Color.Yellow, 0);
-          var request = new LoginWithEmailAddressRequest
+        
+        var request = new LoginWithEmailAddressRequest
         {
             Email = email,
             Password = password
         };
         
-        PlayFabClientAPI.LoginWithEmailAddress (request, OnLoginSuccess, OnPlayFabError);
+        var result = await PlayFabClientAPI.LoginWithEmailAddressAsync(request);
+        
+        if (result.Error != null)
+        {
+            OnPlayFabError(result.Error);
+        }
+        else
+        {
+            OnLoginSuccess(result.Result);
+        }
     }
-    
-    private void RegisterButton_Click(object sender, EventArgs e)
+      private async void RegisterButton_Click(object sender, EventArgs e)
     {
         if (_isProcessing) return;
         
@@ -159,7 +166,16 @@ public class AuthenticationState : GameState
             RequireBothUsernameAndEmail = false
         };
         
-        PlayFabClientAPI.RegisterPlayFabUser(request, OnRegisterSuccess, OnPlayFabError);
+        var result = await PlayFabClientAPI.RegisterPlayFabUserAsync(request);
+        
+        if (result.Error != null)
+        {
+            OnPlayFabError(result.Error);
+        }
+        else
+        {
+            OnRegisterSuccess(result.Result);
+        }
     }
       private void ToggleModeButton_Click(object sender, EventArgs e)
     {
@@ -170,15 +186,13 @@ public class AuthenticationState : GameState
         _emailInput.Text = "";
         _passwordInput.Text = "";
         _messageDisplay.Clear();
-    }
-
-    private void OnLoginSuccess(LoginResult result)
+    }    private void OnLoginSuccess(LoginResult result)
     {
         _isProcessing = false;
         _messageDisplay.ShowMessage($"Login successful! Welcome back, {result.PlayFabId}", Color.Green, 2000);
         
-        // Store the PlayFab ID for later use
-        PlayFabSettings.staticPlayer.PlayFabId = result.PlayFabId;
+        // Store the authenticated player information for later use
+        PlayerAuthenticationManager.SetAuthenticatedPlayer(result.PlayFabId);
         
         // Transition to the main menu after a short delay
         Task.Delay(2000).ContinueWith(_ =>
@@ -194,8 +208,8 @@ public class AuthenticationState : GameState
         _isProcessing = false;
         _messageDisplay.ShowMessage($"Registration successful! Welcome, {result.PlayFabId}", Color.Green, 2000);
         
-        // Store the PlayFab ID for later use
-        PlayFabSettings.staticPlayer.PlayFabId = result.PlayFabId;
+        // Store the authenticated player information for later use
+        PlayerAuthenticationManager.SetAuthenticatedPlayer(result.PlayFabId);
         
         // Transition to the main menu after a short delay
         Task.Delay(2000).ContinueWith(_ =>
