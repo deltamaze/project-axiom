@@ -1,5 +1,3 @@
-
-
 namespace project_axiom.UI;
 
   public class TextInput
@@ -14,9 +12,25 @@ namespace project_axiom.UI;
       private KeyboardState _previousKeyboard;
       private KeyboardState _currentKeyboard;
       private int _maxLength;
+      private bool _isPassword;
 
-      public string Text { get { return _text; } }
+      public string Text 
+      { 
+          get { return _text; } 
+          set { SetText(value); }
+      }
       public bool IsActive { get { return _isActive; } set { _isActive = value; } }
+      public bool IsPassword { get { return _isPassword; } set { _isPassword = value; } }
+      public string PlaceholderText 
+      { 
+          get { return _placeholder; } 
+          set { _placeholder = value; }
+      }
+      
+      // Add Width and Height properties
+      public int Width { get; set; } = 200;
+      public int Height { get; set; } = 40;
+      
       public Color TextColor { get; set; } = Color.White;
       public Color PlaceholderColor { get; set; } = Color.Gray;
       public Color BackgroundColor { get; set; } = Color.DarkSlateGray;
@@ -33,25 +47,20 @@ namespace project_axiom.UI;
           }
       }
 
-      public TextInput(SpriteFont font, string placeholder = "", int maxLength = 20)
+      public TextInput(SpriteFont font, string placeholder = "", int maxLength = 50)
       {
           _font = font;
           _placeholder = placeholder;
           _text = "";
           _maxLength = maxLength;
           _isActive = true;
+          _isPassword = false;
           UpdateRectangle();
       }
 
       private void UpdateRectangle()
       {
-          var sampleText = string.IsNullOrEmpty(_text) ? _placeholder : _text;
-          if (string.IsNullOrEmpty(sampleText)) sampleText = "Sample Text";
-          
-          var textSize = _font.MeasureString(sampleText);
-          int width = Math.Max(200, (int)textSize.X + 20); // Minimum width with padding
-          int height = (int)textSize.Y + 10; // Add padding
-          _rectangle = new Rectangle((int)_position.X, (int)_position.Y, width, height);
+          _rectangle = new Rectangle((int)_position.X, (int)_position.Y, Width, Height);
       }
 
       public void Update(GameTime gameTime)
@@ -120,6 +129,11 @@ namespace project_axiom.UI;
           // Handle numbers
           if (key >= Keys.D0 && key <= Keys.D9)
           {
+              char[] shiftedNumbers = { ')', '!', '@', '#', '$', '%', '^', '&', '*', '(' };
+              if (isShiftPressed)
+              {
+                  return shiftedNumbers[key - Keys.D0].ToString();
+              }
               return ((int)(key - Keys.D0)).ToString();
           }
           
@@ -127,6 +141,32 @@ namespace project_axiom.UI;
           if (key >= Keys.NumPad0 && key <= Keys.NumPad9)
           {
               return ((int)(key - Keys.NumPad0)).ToString();
+          }
+
+          // Handle common symbols for email/password
+          switch (key)
+          {
+              case Keys.OemPeriod:
+                  return isShiftPressed ? ">" : ".";
+              case Keys.OemComma:
+                  return isShiftPressed ? "<" : ",";
+              case Keys.OemMinus:
+                  return isShiftPressed ? "_" : "-";
+              case Keys.OemPlus:
+                  return isShiftPressed ? "+" : "=";
+              case Keys.OemQuestion:
+                  return isShiftPressed ? "?" : "/";
+              case Keys.OemSemicolon:
+                  return isShiftPressed ? ":" : ";";
+              case Keys.OemQuotes:
+                  return isShiftPressed ? "\"" : "'";              case Keys.OemOpenBrackets:
+                  return isShiftPressed ? "{" : "[";
+              case Keys.OemCloseBrackets:
+                  return isShiftPressed ? "}" : "]";
+              case Keys.OemPipe:
+                  return isShiftPressed ? "|" : "\\";
+              case Keys.OemTilde:
+                  return isShiftPressed ? "~" : "`";
           }
 
           return null;
@@ -155,7 +195,20 @@ namespace project_axiom.UI;
           tempTexture.Dispose();
 
           // Draw text or placeholder
-          string displayText = string.IsNullOrEmpty(_text) ? _placeholder : _text;
+          string displayText;
+          if (string.IsNullOrEmpty(_text))
+          {
+              displayText = _placeholder;
+          }
+          else if (_isPassword)
+          {
+              displayText = new string('*', _text.Length);
+          }
+          else
+          {
+              displayText = _text;
+          }
+          
           Color textColor = string.IsNullOrEmpty(_text) ? PlaceholderColor : TextColor;
           
           if (!string.IsNullOrEmpty(displayText))
@@ -170,7 +223,7 @@ namespace project_axiom.UI;
           // Draw cursor if focused
           if (_isFocused && _text.Length < _maxLength)
           {
-              var cursorX = _rectangle.X + 10 + (string.IsNullOrEmpty(_text) ? 0 : _font.MeasureString(_text).X);
+              var cursorX = _rectangle.X + 10 + (string.IsNullOrEmpty(_text) ? 0 : _font.MeasureString(displayText).X);
               var cursorY = _rectangle.Y + 5;
               var cursorHeight = _rectangle.Height - 10;
               

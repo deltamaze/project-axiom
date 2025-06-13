@@ -1,4 +1,3 @@
-
 namespace project_axiom.UI;
 
   public class Button
@@ -28,6 +27,15 @@ namespace project_axiom.UI;
           }
       }
       public string Text { get { return _text; } }
+
+      /// <summary>
+      /// Set the button text (for updating dynamic buttons)
+      /// </summary>
+      public void SetText(string text)
+      {
+          _text = text;
+          UpdateRectangle();
+      }
 
       public Button(SpriteFont font, string text, Texture2D texture = null)
       {
