@@ -11,7 +11,7 @@ public static class PlayFabConfig
     /// Your PlayFab Title ID - this is public information that can be in source code
     /// Get this from your PlayFab Game Manager dashboard
     /// </summary>
-    public const string TitleId = "YOUR_PLAYFAB_TITLE_ID_HERE"; // TODO: Replace with your actual Title ID
+    public const string TitleId = "6B30F"; // TODO: Replace with your actual Title ID
     
     /// <summary>
     /// Initialize PlayFab settings

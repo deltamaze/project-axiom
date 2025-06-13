@@ -29,14 +29,22 @@ public class Game1 : Game
         _graphics.ApplyChanges();
 
         base.Initialize();
-    }
-
-    protected override void LoadContent()
+    }    protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // Initialize and load the first state (Main Menu)
-        _currentState = new MainMenuState(this, _graphics.GraphicsDevice, Content);
+        // Check if player is already authenticated, if not start with authentication
+        if (PlayerAuthenticationManager.IsAuthenticated)
+        {
+            // Player is already authenticated, go to main menu
+            _currentState = new MainMenuState(this, _graphics.GraphicsDevice, Content);
+        }
+        else
+        {
+            // Player needs to authenticate first
+            _currentState = new AuthenticationState(this, _graphics.GraphicsDevice, Content);
+        }
+        
         _currentState.LoadContent();
     }
 
