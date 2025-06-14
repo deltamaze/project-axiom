@@ -13,7 +13,7 @@ try
 {
     logger.LogInformation("Starting Project Axiom Dedicated Server...");
     
-    var server = new GameServer(logger);
+    var server = new GameServer(loggerFactory);
     await server.StartAsync();
     
     logger.LogInformation("Server started successfully. Press Ctrl+C to exit.");

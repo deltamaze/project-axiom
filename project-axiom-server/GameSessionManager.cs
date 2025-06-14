@@ -12,10 +12,9 @@ public class GameSessionManager
     private readonly ConcurrentDictionary<string, ConnectedPlayer> _connectedPlayers = new();
     private readonly object _gameStateLock = new();
     private bool _isRunning;
-    
-    public GameSessionManager(ILogger logger)
+      public GameSessionManager(ILoggerFactory loggerFactory)
     {
-        _logger = (ILogger<GameSessionManager>)logger;
+        _logger = loggerFactory.CreateLogger<GameSessionManager>();
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)

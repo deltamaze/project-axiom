@@ -11,11 +11,9 @@ public class PlayFabServerManager
     private bool _isInitialized;
     private Timer? _heartbeatTimer;
     private string? _serverId;
-    private string? _vmId;
-
-    public PlayFabServerManager(ILogger logger)
+    private string? _vmId;    public PlayFabServerManager(ILoggerFactory loggerFactory)
     {
-        _logger = (ILogger<PlayFabServerManager>)logger;
+        _logger = loggerFactory.CreateLogger<PlayFabServerManager>();
     }
 
     public async Task InitializeAsync()

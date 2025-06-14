@@ -13,13 +13,11 @@ public class GameServer
     private readonly GameSessionManager _gameSessionManager;
     private UdpClient? _udpServer;
     private bool _isRunning;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
-
-    public GameServer(ILogger logger)
+    private readonly CancellationTokenSource _cancellationTokenSource = new();    public GameServer(ILoggerFactory loggerFactory)
     {
-        _logger = (ILogger<GameServer>)logger;
-        _playfabManager = new PlayFabServerManager(_logger);
-        _gameSessionManager = new GameSessionManager(_logger);
+        _logger = loggerFactory.CreateLogger<GameServer>();
+        _playfabManager = new PlayFabServerManager(loggerFactory);
+        _gameSessionManager = new GameSessionManager(loggerFactory);
     }
 
     public async Task StartAsync()
