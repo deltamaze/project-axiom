@@ -17,9 +17,7 @@ public class AuthenticationState : GameState
     private TextInput _emailInput;
     private TextInput _passwordInput;
     private AuthMessageDisplay _messageDisplay;
-    
-    private bool _isRegistrationMode = false; // false = login, true = register
-    private bool _isProcessing = false;
+      private bool _isProcessing = false;
     
     public AuthenticationState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content)
         : base(game, graphicsDevice, content)
@@ -71,8 +69,7 @@ public class AuthenticationState : GameState
             BackgroundHoverColour = new Color(70, 120, 70)
         };
         loginButton.Click += LoginButton_Click;
-        
-        var registerButton = new Button(_font, "Register")
+          var registerButton = new Button(_font, "Register")
         {
             Position = new Vector2(centerX - 50, 380),
             PenColour = Color.White,
@@ -81,16 +78,7 @@ public class AuthenticationState : GameState
         };
         registerButton.Click += RegisterButton_Click;
         
-        var toggleModeButton = new Button(_font, "Switch to Register")
-        {
-            Position = new Vector2(centerX + 100, 380),
-            PenColour = Color.White,
-            BackgroundColour = new Color(80, 80, 80),
-            BackgroundHoverColour = new Color(100, 100, 100)
-        };
-        toggleModeButton.Click += ToggleModeButton_Click;
-        
-        _buttons = new List<Button> { loginButton, registerButton, toggleModeButton };
+        _buttons = new List<Button> { loginButton, registerButton };
         
         // Initialize button rectangles
         foreach (var button in _buttons)
@@ -175,18 +163,7 @@ public class AuthenticationState : GameState
         else
         {
             OnRegisterSuccess(result.Result);
-        }
-    }
-      private void ToggleModeButton_Click(object sender, EventArgs e)
-    {
-        _isRegistrationMode = !_isRegistrationMode;
-        var toggleButton = _buttons[2]; // Toggle mode button
-        toggleButton.SetText(_isRegistrationMode ? "Switch to Login" : "Switch to Register");
-        
-        _emailInput.Text = "";
-        _passwordInput.Text = "";
-        _messageDisplay.Clear();
-    }    private void OnLoginSuccess(LoginResult result)
+        }    }    private void OnLoginSuccess(LoginResult result)
     {
         _isProcessing = false;
         _messageDisplay.ShowMessage($"Login successful! Welcome back, {result.PlayFabId}", Color.Green, 2000);
@@ -259,15 +236,11 @@ public class AuthenticationState : GameState
         }
         
         _messageDisplay.Update(gameTime);
-        
-        // Handle Enter key for quick login/register
+          // Handle Enter key for quick login
         var keyboardState = Keyboard.GetState();
         if (keyboardState.IsKeyDown(Keys.Enter))
         {
-            if (_isRegistrationMode)
-                RegisterButton_Click(this, EventArgs.Empty);
-            else
-                LoginButton_Click(this, EventArgs.Empty);
+            LoginButton_Click(this, EventArgs.Empty);
         }
     }
 
@@ -289,9 +262,8 @@ public class AuthenticationState : GameState
         var titleSize = _titleFont.MeasureString(title);
         var titlePosition = new Vector2(centerX - (titleSize.X / 2f), 80);
         spriteBatch.DrawString(_titleFont, title, titlePosition, Color.White);
-        
-        // Draw subtitle
-        string subtitle = _isRegistrationMode ? "Create New Account" : "Login to Continue";
+          // Draw subtitle
+        string subtitle = "Login or Register to Continue";
         var subtitleSize = _font.MeasureString(subtitle);
         var subtitlePosition = new Vector2(centerX - (subtitleSize.X / 2f), 140);
         spriteBatch.DrawString(_font, subtitle, subtitlePosition, Color.LightGray);
