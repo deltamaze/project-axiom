@@ -132,9 +132,7 @@ public class CharacterCreationState : GameState
                 button.BackgroundColour = new Color(60, 60, 80);
             }
         }
-    }
-
-    private void CreateCharacter_Click(object sender, System.EventArgs e)
+    }    private void CreateCharacter_Click(object sender, System.EventArgs e)
     {
         // Validate character name
         string characterName = _nameInput.Text.Trim();
@@ -151,8 +149,21 @@ public class CharacterCreationState : GameState
         System.Diagnostics.Debug.WriteLine($"Character created: {_character.Name} - {_character.Class}");
         System.Diagnostics.Debug.WriteLine($"Stats: Health={_character.MaxHealth}, {_character.ResourceType}={_character.MaxResource}");
 
-        // Transition to Training Grounds with the created character
-        _game.ChangeState(new TrainingGroundsState(_game, _graphicsDevice, _content, _character));
+        // Save character to PlayFab
+        PlayerAuthenticationManager.SaveCharacter(_character,
+            successMessage =>
+            {
+                System.Diagnostics.Debug.WriteLine($"Character saved: {successMessage}");
+                // Transition to Training Grounds with the created character
+                _game.ChangeState(new TrainingGroundsState(_game, _graphicsDevice, _content, _character));
+            },
+            errorMessage =>
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to save character: {errorMessage}");
+                // Still transition to training grounds even if save failed (for offline play)
+                _game.ChangeState(new TrainingGroundsState(_game, _graphicsDevice, _content, _character));
+            }
+        );
     }
 
     private void BackButton_Click(object sender, System.EventArgs e)

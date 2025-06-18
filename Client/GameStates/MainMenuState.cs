@@ -63,8 +63,8 @@ public class MainMenuState : GameState
     }    private void NewGameButton_Click(object sender, System.EventArgs e)
     {
         System.Diagnostics.Debug.WriteLine("New Game Clicked!");
-        // Transition to Character Creation instead of directly to Training Grounds
-        _game.ChangeState(new CharacterCreationState(_game, _graphicsDevice, _content));
+        // Transition to Character Selection which will handle both existing and new characters
+        _game.ChangeState(new CharacterSelectionState(_game, _graphicsDevice, _content));
     }
 
     private void LogoutButton_Click(object sender, System.EventArgs e)

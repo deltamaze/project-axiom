@@ -9,10 +9,9 @@ namespace project_axiom.UI;
       private Rectangle _rectangle;
       private bool _isHovering;
       private MouseState _previousMouse;
-      private MouseState _currentMouse;
-
-      public event EventHandler Click;
+      private MouseState _currentMouse;      public event EventHandler Click;
       public bool Clicked { get; private set; }
+      public bool IsVisible { get; set; } = true; // New property for visibility
       public Color PenColour { get; set; } = Color.White; // Text color
       public Color HoverColour { get; set; } = Color.LightGray; // Text color on hover
       public Color BackgroundColour { get; set; } = Color.DarkSlateGray; // Default button background
@@ -26,7 +25,15 @@ namespace project_axiom.UI;
               UpdateRectangle();
           }
       }
-      public string Text { get { return _text; } }
+      public string Text 
+      { 
+          get { return _text; } 
+          set
+          {
+              _text = value;
+              UpdateRectangle();
+          }
+      }
 
       /// <summary>
       /// Set the button text (for updating dynamic buttons)
@@ -50,10 +57,10 @@ namespace project_axiom.UI;
           int width = _texture?.Width ?? (int)textSize.X + 20; // Add padding if no texture
           int height = _texture?.Height ?? (int)textSize.Y + 10; // Add padding if no texture
           _rectangle = new Rectangle((int)_position.X, (int)_position.Y, width, height);
-      }
-
-      public void Update(GameTime gameTime)
+      }      public void Update(GameTime gameTime)
       {
+          if (!IsVisible) return; // Don't update invisible buttons
+          
           _previousMouse = _currentMouse;
           _currentMouse = Mouse.GetState();
           var mouseRectangle = new Rectangle(_currentMouse.X, _currentMouse.Y, 1, 1);
@@ -74,6 +81,8 @@ namespace project_axiom.UI;
 
       public void Draw(SpriteBatch spriteBatch)
       {
+          if (!IsVisible) return; // Don't draw invisible buttons
+          
           // Draw background
           Color currentBgColor = _isHovering ? BackgroundHoverColour : BackgroundColour;
           if (_texture != null)
