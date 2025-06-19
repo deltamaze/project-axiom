@@ -26,12 +26,10 @@ public class CharacterSelectionState : GameState
         _font = _content.Load<SpriteFont>("Fonts/DefaultFont");
         _titleFont = _font;
 
-        _buttons = new List<Button>();
-
-        // Create New Character button
+        _buttons = new List<Button>();        // Create New Character button
         _createNewButton = new Button(_font, "Create New Character")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 300),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 350),
             PenColour = Color.White,
             BackgroundColour = new Color(50, 80, 50),
             BackgroundHoverColour = new Color(70, 100, 70)
@@ -42,7 +40,7 @@ public class CharacterSelectionState : GameState
         // Play with existing character button (initially hidden)
         _playButton = new Button(_font, "Enter Training Grounds")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 250),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 300),
             PenColour = Color.White,
             BackgroundColour = new Color(50, 50, 80),
             BackgroundHoverColour = new Color(70, 70, 100),
@@ -54,7 +52,7 @@ public class CharacterSelectionState : GameState
         // Delete character button (initially hidden)
         _deleteButton = new Button(_font, "Delete Character")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 350),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 400),
             PenColour = Color.White,
             BackgroundColour = new Color(80, 50, 50),
             BackgroundHoverColour = new Color(100, 70, 70),
@@ -66,7 +64,7 @@ public class CharacterSelectionState : GameState
         // Back button
         _backButton = new Button(_font, "Back to Main Menu")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 400),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 450),
             PenColour = Color.White,
             BackgroundColour = new Color(60, 60, 80),
             BackgroundHoverColour = new Color(80, 80, 100)
@@ -187,18 +185,16 @@ public class CharacterSelectionState : GameState
     {
         _graphicsDevice.Clear(new Color(25, 25, 45));
 
-        spriteBatch.Begin();
-
-        // Draw title
+        spriteBatch.Begin();        // Draw title
         string title = "Character Selection";
         var titleSize = _titleFont.MeasureString(title);
-        var titlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (titleSize.X / 2f), 50);
+        var titlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (titleSize.X / 2f), 80);
         spriteBatch.DrawString(_titleFont, title, titlePosition, Color.White);
 
         // Draw status message
         var statusColor = _hasError ? Color.Red : (_isLoading ? Color.Yellow : Color.LightGray);
         var statusSize = _font.MeasureString(_statusMessage);
-        var statusPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (statusSize.X / 2f), 120);
+        var statusPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (statusSize.X / 2f), 150);
         spriteBatch.DrawString(_font, _statusMessage, statusPosition, statusColor);
 
         // Draw character info if loaded
@@ -208,13 +204,13 @@ public class CharacterSelectionState : GameState
             string healthInfo = $"Health: {_loadedCharacter.MaxHealth}";
             string resourceInfo = $"{_loadedCharacter.ResourceType}: {_loadedCharacter.MaxResource}";
 
-            var charInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 160);
+            var charInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 200);
             spriteBatch.DrawString(_font, characterInfo, charInfoPosition, _loadedCharacter.GetClassColor());
             
-            var healthInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 180);
+            var healthInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 230);
             spriteBatch.DrawString(_font, healthInfo, healthInfoPosition, Color.LightGreen);
             
-            var resourceInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 200);
+            var resourceInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 260);
             spriteBatch.DrawString(_font, resourceInfo, resourceInfoPosition, _loadedCharacter.GetResourceColor());
         }
 

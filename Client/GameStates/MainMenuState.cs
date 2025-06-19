@@ -20,7 +20,7 @@ public class MainMenuState : GameState
         _buttons = new List<Button>();        // New Game button
         var newGameButton = new Button(_buttonFont, "New Game")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 250),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 300),
             PenColour = Color.AntiqueWhite,
             BackgroundColour = new Color(50, 80, 50),
             BackgroundHoverColour = new Color(70, 100, 70)
@@ -33,7 +33,7 @@ public class MainMenuState : GameState
         {
             var logoutButton = new Button(_buttonFont, "Logout")
             {
-                Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 290),
+                Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 350),
                 PenColour = Color.AntiqueWhite,
                 BackgroundColour = new Color(80, 60, 50),
                 BackgroundHoverColour = new Color(100, 80, 70)
@@ -45,7 +45,7 @@ public class MainMenuState : GameState
         // Quit button
         var quitButton = new Button(_buttonFont, "Quit")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 330),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 400),
             PenColour = Color.AntiqueWhite,
             BackgroundColour = new Color(100, 50, 50),
             BackgroundHoverColour = new Color(150, 80, 80)
@@ -103,7 +103,7 @@ public class MainMenuState : GameState
             ? "Welcome back! Choose your next adventure." 
             : "Choose your class and enter the arena!";
         var subtitleSize = _buttonFont.MeasureString(subtitle);
-        var subtitlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (subtitleSize.X / 2f), 150);
+        var subtitlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (subtitleSize.X / 2f), 170);
         spriteBatch.DrawString(_buttonFont, subtitle, subtitlePosition, Color.LightGray);
 
         // Show user info if authenticated (for debug/info purposes)
@@ -112,13 +112,13 @@ public class MainMenuState : GameState
             // Display email address
             string emailInfo = $"Email: {PlayerAuthenticationManager.EmailAddress}";
             var emailInfoSize = _buttonFont.MeasureString(emailInfo);
-            var emailInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (emailInfoSize.X / 2f), 185);
+            var emailInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (emailInfoSize.X / 2f), 220);
             spriteBatch.DrawString(_buttonFont, emailInfo, emailInfoPosition, Color.LightBlue);
             
             // Display PlayFab ID (for development)
             string playerInfo = $"Player ID: {PlayerAuthenticationManager.PlayFabId}";
             var playerInfoSize = _buttonFont.MeasureString(playerInfo);
-            var playerInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (playerInfoSize.X / 2f), 210);
+            var playerInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (playerInfoSize.X / 2f), 250);
             spriteBatch.DrawString(_buttonFont, playerInfo, playerInfoPosition, Color.Gray);
         }
 
