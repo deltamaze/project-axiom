@@ -167,14 +167,13 @@ public class AuthenticationState : GameState
         {
             OnRegisterSuccess(result.Result);
         }
-    }
-    private void OnLoginSuccess(LoginResult result)
+    }    private void OnLoginSuccess(LoginResult result)
     {
         _isProcessing = false;
         _messageDisplay.ShowMessage($"Login successful! Welcome back, {result.PlayFabId}", Color.Green, 2000);
 
         // Store the authenticated player information for later use
-        PlayerAuthenticationManager.SetAuthenticatedPlayer(result.PlayFabId);
+        PlayerAuthenticationManager.SetAuthenticatedPlayer(result.PlayFabId, _emailInput.Text.Trim());
 
         // Transition to the main menu after a short delay
         Task.Delay(2000).ContinueWith(_ =>
@@ -183,15 +182,13 @@ public class AuthenticationState : GameState
             // For now, we'll just set a flag and handle the transition in Update
             _game.ChangeState(new MainMenuState(_game, _graphicsDevice, _content));
         });
-    }
-
-    private void OnRegisterSuccess(RegisterPlayFabUserResult result)
+    }    private void OnRegisterSuccess(RegisterPlayFabUserResult result)
     {
         _isProcessing = false;
         _messageDisplay.ShowMessage($"Registration successful! Welcome, {result.PlayFabId}", Color.Green, 2000);
 
         // Store the authenticated player information for later use
-        PlayerAuthenticationManager.SetAuthenticatedPlayer(result.PlayFabId);
+        PlayerAuthenticationManager.SetAuthenticatedPlayer(result.PlayFabId, _emailInput.Text.Trim());
 
         // Transition to the main menu after a short delay
         Task.Delay(2000).ContinueWith(_ =>

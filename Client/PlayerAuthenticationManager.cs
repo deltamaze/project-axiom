@@ -9,11 +9,15 @@ namespace project_axiom;
 /// Manages the authenticated player's information and state
 /// </summary>
 public static class PlayerAuthenticationManager
-{
-    /// <summary>
+{    /// <summary>
     /// The currently authenticated player's PlayFab ID
     /// </summary>
     public static string PlayFabId { get; private set; } = string.Empty;
+    
+    /// <summary>
+    /// The currently authenticated player's email address
+    /// </summary>
+    public static string EmailAddress { get; private set; } = string.Empty;
     
     /// <summary>
     /// Whether the player is currently authenticated
@@ -24,18 +28,20 @@ public static class PlayerAuthenticationManager
     /// Set the authenticated player information
     /// </summary>
     /// <param name="playFabId">The PlayFab ID from login/register result</param>
-    public static void SetAuthenticatedPlayer(string playFabId)
+    /// <param name="emailAddress">The email address used for authentication</param>
+    public static void SetAuthenticatedPlayer(string playFabId, string emailAddress = "")
     {
         PlayFabId = playFabId ?? string.Empty;
+        EmailAddress = emailAddress ?? string.Empty;
     }
-    
-    /// <summary>
+      /// <summary>
     /// Clear the authentication state (for logout)
     /// </summary>
     public static void ClearAuthentication()
     {
         PlayFabId = string.Empty;
-    }    /// <summary>
+        EmailAddress = string.Empty;
+    }/// <summary>
     /// Save a character to PlayFab Player Data
     /// </summary>
     /// <param name="character">The character to save</param>

@@ -17,12 +17,10 @@ public class MainMenuState : GameState
         _buttonFont = _content.Load<SpriteFont>("Fonts/DefaultFont");
         _titleFont = _buttonFont; // Using same font for now, can be different later
 
-        _buttons = new List<Button>();
-
-        // New Game button
+        _buttons = new List<Button>();        // New Game button
         var newGameButton = new Button(_buttonFont, "New Game")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 200),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 250),
             PenColour = Color.AntiqueWhite,
             BackgroundColour = new Color(50, 80, 50),
             BackgroundHoverColour = new Color(70, 100, 70)
@@ -35,7 +33,7 @@ public class MainMenuState : GameState
         {
             var logoutButton = new Button(_buttonFont, "Logout")
             {
-                Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 240),
+                Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 290),
                 PenColour = Color.AntiqueWhite,
                 BackgroundColour = new Color(80, 60, 50),
                 BackgroundHoverColour = new Color(100, 80, 70)
@@ -47,7 +45,7 @@ public class MainMenuState : GameState
         // Quit button
         var quitButton = new Button(_buttonFont, "Quit")
         {
-            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 280),
+            Position = new Vector2((_graphicsDevice.Viewport.Width / 2f) - 100, 330),
             PenColour = Color.AntiqueWhite,
             BackgroundColour = new Color(100, 50, 50),
             BackgroundHoverColour = new Color(150, 80, 80)
@@ -100,22 +98,27 @@ public class MainMenuState : GameState
         string gameTitle = "Block Brawlers";
         var titleSize = _titleFont.MeasureString(gameTitle);
         var titlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (titleSize.X / 2f), 100);
-        spriteBatch.DrawString(_titleFont, gameTitle, titlePosition, Color.White);
-
-        // Draw subtitle based on authentication status
+        spriteBatch.DrawString(_titleFont, gameTitle, titlePosition, Color.White);        // Draw subtitle based on authentication status
         string subtitle = PlayerAuthenticationManager.IsAuthenticated 
             ? "Welcome back! Choose your next adventure." 
             : "Choose your class and enter the arena!";
         var subtitleSize = _buttonFont.MeasureString(subtitle);
-        var subtitlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (subtitleSize.X / 2f), 140);
+        var subtitlePosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (subtitleSize.X / 2f), 150);
         spriteBatch.DrawString(_buttonFont, subtitle, subtitlePosition, Color.LightGray);
 
-        // Show PlayFab ID if authenticated (for debug/info purposes)
+        // Show user info if authenticated (for debug/info purposes)
         if (PlayerAuthenticationManager.IsAuthenticated)
         {
-            string playerInfo = $"Player: {PlayerAuthenticationManager.PlayFabId}";
+            // Display email address
+            string emailInfo = $"Email: {PlayerAuthenticationManager.EmailAddress}";
+            var emailInfoSize = _buttonFont.MeasureString(emailInfo);
+            var emailInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (emailInfoSize.X / 2f), 185);
+            spriteBatch.DrawString(_buttonFont, emailInfo, emailInfoPosition, Color.LightBlue);
+            
+            // Display PlayFab ID (for development)
+            string playerInfo = $"Player ID: {PlayerAuthenticationManager.PlayFabId}";
             var playerInfoSize = _buttonFont.MeasureString(playerInfo);
-            var playerInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (playerInfoSize.X / 2f), 160);
+            var playerInfoPosition = new Vector2((_graphicsDevice.Viewport.Width / 2f) - (playerInfoSize.X / 2f), 210);
             spriteBatch.DrawString(_buttonFont, playerInfo, playerInfoPosition, Color.Gray);
         }
 
