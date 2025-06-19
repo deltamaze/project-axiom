@@ -34,10 +34,9 @@ public class AuthenticationState : GameState
         
         // Create text inputs
         var centerX = _graphicsDevice.Viewport.Width / 2f;
-        
-        _emailInput = new TextInput(_font)
+          _emailInput = new TextInput(_font)
         {
-            Position = new Vector2(centerX - 150, 250),
+            Position = new Vector2(centerX - 150, 280),
             Width = 300,
             Height = 40,
             PlaceholderText = "Email",
@@ -48,7 +47,7 @@ public class AuthenticationState : GameState
         
         _passwordInput = new TextInput(_font)
         {
-            Position = new Vector2(centerX - 150, 310),
+            Position = new Vector2(centerX - 150, 350),
             Width = 300,
             Height = 40,
             PlaceholderText = "Password",
@@ -59,11 +58,10 @@ public class AuthenticationState : GameState
         };
         
         _textInputs = new List<TextInput> { _emailInput, _passwordInput };
-        
-        // Create buttons
+          // Create buttons
         var loginButton = new Button(_font, "Login")
         {
-            Position = new Vector2(centerX - 200, 380),
+            Position = new Vector2(centerX - 200, 420),
             PenColour = Color.White,
             BackgroundColour = new Color(50, 100, 50),
             BackgroundHoverColour = new Color(70, 120, 70)
@@ -71,7 +69,7 @@ public class AuthenticationState : GameState
         loginButton.Click += LoginButton_Click;
           var registerButton = new Button(_font, "Register")
         {
-            Position = new Vector2(centerX - 50, 380),
+            Position = new Vector2(centerX - 50, 420),
             PenColour = Color.White,
             BackgroundColour = new Color(50, 50, 100),
             BackgroundHoverColour = new Color(70, 70, 120)
@@ -84,11 +82,10 @@ public class AuthenticationState : GameState
         foreach (var button in _buttons)
         {
             button.Position = button.Position;
-        }
-          // Create message display
+        }          // Create message display
         _messageDisplay = new AuthMessageDisplay(_font)
         {
-            Position = new Vector2(centerX, 450),
+            Position = new Vector2(centerX, 490),
             MaxWidth = 600,
             CenterAlign = true
         };
@@ -267,10 +264,9 @@ public class AuthenticationState : GameState
         var subtitleSize = _font.MeasureString(subtitle);
         var subtitlePosition = new Vector2(centerX - (subtitleSize.X / 2f), 140);
         spriteBatch.DrawString(_font, subtitle, subtitlePosition, Color.LightGray);
-        
-        // Draw labels
-        spriteBatch.DrawString(_font, "Email:", new Vector2(_emailInput.Position.X, _emailInput.Position.Y - 25), Color.White);
-        spriteBatch.DrawString(_font, "Password:", new Vector2(_passwordInput.Position.X, _passwordInput.Position.Y - 25), Color.White);
+          // Draw labels
+        spriteBatch.DrawString(_font, "Email:", new Vector2(_emailInput.Position.X, _emailInput.Position.Y - 35), Color.White);
+        spriteBatch.DrawString(_font, "Password:", new Vector2(_passwordInput.Position.X, _passwordInput.Position.Y - 35), Color.White);
         
         // Draw text inputs
         foreach (var textInput in _textInputs)

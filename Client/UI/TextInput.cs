@@ -92,16 +92,15 @@ namespace project_axiom.UI;
               .ToArray();
 
           foreach (var key in pressedKeys)
-          {
-              if (key == Keys.Back && _text.Length > 0)
+          {              if (key == Keys.Back && _text.Length > 0)
               {
                   _text = _text.Substring(0, _text.Length - 1);
-                  UpdateRectangle();
+                  // Don't call UpdateRectangle() here - size should stay constant
               }
               else if (key == Keys.Space && _text.Length < _maxLength)
               {
                   _text += " ";
-                  UpdateRectangle();
+                  // Don't call UpdateRectangle() here - size should stay constant
               }
               else if (_text.Length < _maxLength)
               {
@@ -109,7 +108,7 @@ namespace project_axiom.UI;
                   if (!string.IsNullOrEmpty(keyString))
                   {
                       _text += keyString;
-                      UpdateRectangle();
+                      // Don't call UpdateRectangle() here - size should stay constant
                   }
               }
           }
@@ -232,19 +231,15 @@ namespace project_axiom.UI;
               spriteBatch.Draw(tempTexture, new Rectangle((int)cursorX, (int)cursorY, 2, cursorHeight), Color.White);
               tempTexture.Dispose();
           }
-      }
-
-      public void SetText(string text)
+      }      public void SetText(string text)
       {
           _text = text ?? "";
           if (_text.Length > _maxLength)
               _text = _text.Substring(0, _maxLength);
-          UpdateRectangle();
-      }
-
-      public void Clear()
+          // Don't call UpdateRectangle() here - size should stay constant
+      }      public void Clear()
       {
           _text = "";
-          UpdateRectangle();
+          // Don't call UpdateRectangle() here - size should stay constant
       }
   }
