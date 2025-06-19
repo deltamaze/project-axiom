@@ -36,7 +36,7 @@ public class AuthenticationState : GameState
         var centerX = _graphicsDevice.Viewport.Width / 2f;
         _emailInput = new TextInput(_font)
         {
-            Position = new Vector2(centerX - 450, 280),
+            Position = new Vector2(centerX - 450, 200),
             Width = 900,
             Height = 46,
             PlaceholderText = "Email",
@@ -55,9 +55,12 @@ public class AuthenticationState : GameState
             IsPassword = true,
             BackgroundColor = new Color(40, 40, 40),
             TextColor = Color.White,
-            PlaceholderColor = Color.Gray
-        };
+            PlaceholderColor = Color.Gray        };
         _passwordInput.UpdateRectangle();
+
+        // Set default values for testing
+        _emailInput.SetText("test@test.com");
+        _passwordInput.SetText("passwordtest");
 
         _textInputs = new List<TextInput> { _emailInput, _passwordInput };
         // Create buttons
@@ -268,10 +271,9 @@ public class AuthenticationState : GameState
         string subtitle = "Login or Register to Continue";
         var subtitleSize = _font.MeasureString(subtitle);
         var subtitlePosition = new Vector2(centerX - (subtitleSize.X / 2f), 140);
-        spriteBatch.DrawString(_font, subtitle, subtitlePosition, Color.LightGray);
-        // Draw labels
-        spriteBatch.DrawString(_font, "Email:", new Vector2(_emailInput.Position.X, _emailInput.Position.Y - 35), Color.White);
-        spriteBatch.DrawString(_font, "Password:", new Vector2(_passwordInput.Position.X, _passwordInput.Position.Y - 35), Color.White);
+        spriteBatch.DrawString(_font, subtitle, subtitlePosition, Color.LightGray);        // Draw labels
+        spriteBatch.DrawString(_font, "Email:", new Vector2(_emailInput.Position.X, _emailInput.Position.Y - 50), Color.White);
+        spriteBatch.DrawString(_font, "Password:", new Vector2(_passwordInput.Position.X, _passwordInput.Position.Y - 50), Color.White);
 
         // Draw text inputs
         foreach (var textInput in _textInputs)
