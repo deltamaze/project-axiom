@@ -28,7 +28,7 @@ namespace project_axiom.UI;
       }
       
       // Add Width and Height properties
-      public int Width { get; set; } = 200;
+      public int Width { get; set; } = 400;
       public int Height { get; set; } = 40;
       
       public Color TextColor { get; set; } = Color.White;
@@ -58,7 +58,7 @@ namespace project_axiom.UI;
           UpdateRectangle();
       }
 
-      private void UpdateRectangle()
+      public void UpdateRectangle()
       {
           _rectangle = new Rectangle((int)_position.X, (int)_position.Y, Width, Height);
       }
