@@ -9,12 +9,14 @@ namespace project_axiom_server;
 public class GameSessionManager
 {
     private readonly ILogger<GameSessionManager> _logger;
+    private readonly PlayFabServerManager _playfabManager;
     private readonly ConcurrentDictionary<string, ConnectedPlayer> _connectedPlayers = new();
     private readonly object _gameStateLock = new();
     private bool _isRunning;
-      public GameSessionManager(ILoggerFactory loggerFactory)
+      public GameSessionManager(ILoggerFactory loggerFactory, PlayFabServerManager playfabManager)
     {
         _logger = loggerFactory.CreateLogger<GameSessionManager>();
+        _playfabManager = playfabManager;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -80,11 +82,12 @@ public class GameSessionManager
                 EndPoint = clientEndpoint,
                 ConnectedAt = DateTime.UtcNow,
                 LastHeartbeat = DateTime.UtcNow
-            };
-
-            _connectedPlayers.TryAdd(playerKey, player);
+            };            _connectedPlayers.TryAdd(playerKey, player);
             
             _logger.LogInformation($"Player connected: {playFabId} from {clientEndpoint}");
+            
+            // Notify PlayFab about the new player connection
+            await _playfabManager.NotifyPlayerConnected(playFabId);
             
             // Send connection acknowledgment
             var response = "CONNECT_ACK:SUCCESS";
@@ -101,10 +104,12 @@ public class GameSessionManager
         try
         {
             var playerKey = $"{clientEndpoint.Address}:{clientEndpoint.Port}";
-            
-            if (_connectedPlayers.TryRemove(playerKey, out var player))
+              if (_connectedPlayers.TryRemove(playerKey, out var player))
             {
                 _logger.LogInformation($"Player disconnected: {player.PlayFabId} from {clientEndpoint}");
+                
+                // Notify PlayFab about the player disconnection
+                await _playfabManager.NotifyPlayerDisconnected(player.PlayFabId);
             }
             else
             {

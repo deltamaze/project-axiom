@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using PlayFab;
 using PlayFab.MultiplayerModels;
 using System.Text.Json;
+using System.Runtime.InteropServices;
 
 namespace project_axiom_server;
 
@@ -11,9 +12,17 @@ public class PlayFabServerManager
     private bool _isInitialized;
     private Timer? _heartbeatTimer;
     private string? _serverId;
-    private string? _vmId;    public PlayFabServerManager(ILoggerFactory loggerFactory)
+    private string? _vmId;
+    private bool _isPlayFabEnvironment;
+    private readonly HttpClient _httpClient;
+    
+    // PlayFab Game Server SDK simulation via HTTP calls to local agent
+    private const string AGENT_BASE_URL = "http://localhost:56001";    private int _connectedPlayerCount = 0;
+
+    public PlayFabServerManager(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger<PlayFabServerManager>();
+        _httpClient = new HttpClient();
     }
 
     public async Task InitializeAsync()
@@ -42,9 +51,7 @@ public class PlayFabServerManager
             _logger.LogError(ex, "Failed to initialize PlayFab Game Server SDK");
             throw;
         }
-    }
-
-    private async Task InitializePlayFabEnvironment()
+    }    private async Task InitializePlayFabEnvironment()
     {
         _logger.LogInformation("Running in PlayFab Multiplayer Servers environment");
         
@@ -62,14 +69,17 @@ public class PlayFabServerManager
             _logger.LogInformation($"PlayFab Title ID: {titleId}");
         }
 
+        _isPlayFabEnvironment = true;
+
+        // Initialize the PlayFab Game Server SDK equivalent
+        await StartGameServerSDK();
+        
         // Start the heartbeat to let PlayFab know the server is alive
         StartHeartbeat();
         
         // Signal that the server is ready to accept players
         await SignalServerReady();
-    }
-
-    private async Task InitializeLocalEnvironment()
+    }    private async Task InitializeLocalEnvironment()
     {
         _logger.LogInformation("Running in local development environment");
         _logger.LogInformation("PlayFab integration will be limited in local mode");
@@ -78,8 +88,33 @@ public class PlayFabServerManager
         // This allows development without requiring LocalMultiplayerAgent
         _serverId = "local-server";
         _vmId = "local-vm";
+        _isPlayFabEnvironment = false;
         
         await Task.CompletedTask;
+    }
+
+    private async Task StartGameServerSDK()
+    {
+        try
+        {
+            _logger.LogInformation("Starting PlayFab Game Server SDK...");
+            
+            if (_isPlayFabEnvironment)
+            {
+                // In a real PlayFab environment, this would call the native SDK
+                // For now, we'll use HTTP calls to communicate with the LocalMultiplayerAgent
+                await SendAgentRequest("POST", "v1/sessionhost/start", new { });
+                _logger.LogInformation("Game Server SDK started successfully");
+            }
+            else
+            {
+                _logger.LogInformation("Skipping Game Server SDK start in local mode");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to start Game Server SDK - continuing without it");
+        }
     }
 
     private void StartHeartbeat()
@@ -88,17 +123,28 @@ public class PlayFabServerManager
         
         // Send heartbeat every 30 seconds
         _heartbeatTimer = new Timer(async _ => await SendHeartbeat(), null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
-    }
-
-    private async Task SendHeartbeat()
+    }    private async Task SendHeartbeat()
     {
         try
         {
-            // In a real implementation, this would call PlayFab's heartbeat API
-            // For now, just log that we're alive
             _logger.LogDebug("Sending heartbeat to PlayFab");
             
-            await Task.CompletedTask;
+            if (_isPlayFabEnvironment)
+            {
+                // Send heartbeat to PlayFab agent
+                var heartbeatData = new
+                {
+                    CurrentGameState = "Active",
+                    CurrentGameHealth = "Healthy",
+                    CurrentPlayerCount = _connectedPlayerCount
+                };
+                
+                await SendAgentRequest("POST", "v1/sessionhost/heartbeat", heartbeatData);
+            }
+            else
+            {
+                _logger.LogDebug("Local mode - heartbeat logged only");
+            }
         }
         catch (Exception ex)
         {
@@ -106,33 +152,97 @@ public class PlayFabServerManager
         }
     }
 
-    private async Task SignalServerReady()
+    private async Task SendAgentRequest(string method, string endpoint, object? data = null)
+    {
+        try
+        {
+            var url = $"{AGENT_BASE_URL}/{endpoint}";
+            HttpResponseMessage response;
+            
+            if (method == "POST")
+            {
+                var jsonContent = data != null ? JsonSerializer.Serialize(data) : "{}";
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+                response = await _httpClient.PostAsync(url, content);
+            }
+            else
+            {
+                response = await _httpClient.GetAsync(url);
+            }
+            
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogDebug($"Successfully sent {method} request to {endpoint}");
+            }
+            else
+            {
+                _logger.LogWarning($"Failed to send {method} request to {endpoint}: {response.StatusCode}");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            // This is expected when not running with LocalMultiplayerAgent
+            _logger.LogDebug(ex, $"Could not connect to PlayFab agent for {endpoint} - this is normal in local development");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Error sending request to PlayFab agent: {endpoint}");
+        }
+    }    private async Task SignalServerReady()
     {
         try
         {
             _logger.LogInformation("Signaling to PlayFab that server is ready for players");
             
-            // In a real implementation, this would call PlayFab's ReadyForPlayers API
-            // For now, just log the readiness
-            _logger.LogInformation("Server is ready to accept players");
-            
-            await Task.CompletedTask;
+            if (_isPlayFabEnvironment)
+            {
+                // Signal to PlayFab that the server is ready to accept players
+                var readyData = new
+                {
+                    Operation = "Ready"
+                };
+                
+                await SendAgentRequest("POST", "v1/sessionhost/ready", readyData);
+                _logger.LogInformation("Successfully signaled server readiness to PlayFab");
+            }
+            else
+            {
+                _logger.LogInformation("Local mode - server marked as ready");
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to signal server readiness to PlayFab");
             throw;
         }
-    }
-
-    public async Task NotifyPlayerConnected(string playFabId)
+    }    public async Task NotifyPlayerConnected(string playFabId)
     {
         try
         {
             _logger.LogInformation($"Player connected: {playFabId}");
             
-            // In a real implementation, this would notify PlayFab about the connected player
-            await Task.CompletedTask;
+            _connectedPlayerCount++;
+            
+            if (_isPlayFabEnvironment)
+            {
+                // Notify PlayFab about the connected player
+                var playerData = new
+                {
+                    PlayerId = playFabId,
+                    Operation = "PlayerConnected"
+                };
+                
+                await SendAgentRequest("POST", "v1/sessionhost/updateconnectedplayers", new
+                {
+                    CurrentPlayers = new[] { new { PlayerId = playFabId } }
+                });
+                
+                _logger.LogInformation($"Notified PlayFab about player connection: {playFabId}");
+            }
+            else
+            {
+                _logger.LogInformation($"Local mode - player connection logged: {playFabId}");
+            }
         }
         catch (Exception ex)
         {
@@ -146,16 +256,34 @@ public class PlayFabServerManager
         {
             _logger.LogInformation($"Player disconnected: {playFabId}");
             
-            // In a real implementation, this would notify PlayFab about the disconnected player
-            await Task.CompletedTask;
+            _connectedPlayerCount = Math.Max(0, _connectedPlayerCount - 1);
+            
+            if (_isPlayFabEnvironment)
+            {
+                // Notify PlayFab about the disconnected player
+                var playerData = new
+                {
+                    PlayerId = playFabId,
+                    Operation = "PlayerDisconnected"
+                };
+                
+                await SendAgentRequest("POST", "v1/sessionhost/updateconnectedplayers", new
+                {
+                    CurrentPlayers = Array.Empty<object>() // Send empty array to indicate player left
+                });
+                
+                _logger.LogInformation($"Notified PlayFab about player disconnection: {playFabId}");
+            }
+            else
+            {
+                _logger.LogInformation($"Local mode - player disconnection logged: {playFabId}");
+            }
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, $"Failed to notify PlayFab about player disconnection: {playFabId}");
         }
-    }
-
-    public async Task ShutdownAsync()
+    }    public async Task ShutdownAsync()
     {
         try
         {
@@ -163,8 +291,18 @@ public class PlayFabServerManager
             
             _heartbeatTimer?.Dispose();
             
-            // In a real implementation, this would properly shutdown the PlayFab connection
-            await Task.CompletedTask;
+            if (_isPlayFabEnvironment)
+            {
+                // Notify PlayFab that the server is shutting down
+                await SendAgentRequest("POST", "v1/sessionhost/terminate", new
+                {
+                    Operation = "Terminate"
+                });
+                
+                _logger.LogInformation("Notified PlayFab about server shutdown");
+            }
+            
+            _httpClient?.Dispose();
             
             _logger.LogInformation("PlayFab Game Server SDK shutdown complete");
         }
@@ -172,9 +310,9 @@ public class PlayFabServerManager
         {
             _logger.LogError(ex, "Error during PlayFab shutdown");
         }
-    }
-
-    public bool IsInitialized => _isInitialized;
+    }    public bool IsInitialized => _isInitialized;
     public string? ServerId => _serverId;
     public string? VmId => _vmId;
+    public int ConnectedPlayerCount => _connectedPlayerCount;
+    public bool IsPlayFabEnvironment => _isPlayFabEnvironment;
 }

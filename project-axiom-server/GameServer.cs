@@ -17,7 +17,7 @@ public class GameServer
     {
         _logger = loggerFactory.CreateLogger<GameServer>();
         _playfabManager = new PlayFabServerManager(loggerFactory);
-        _gameSessionManager = new GameSessionManager(loggerFactory);
+        _gameSessionManager = new GameSessionManager(loggerFactory, _playfabManager);
     }
 
     public async Task StartAsync()
@@ -104,7 +104,8 @@ public class GameServer
         _udpServer?.Dispose();
         
         await _playfabManager.ShutdownAsync();
-        
-        _logger.LogInformation("Game server stopped");
+          _logger.LogInformation("Game server stopped");
     }
+
+    public bool IsRunning => _isRunning;
 }
