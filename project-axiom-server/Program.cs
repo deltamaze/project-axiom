@@ -2,6 +2,23 @@
 using PlayFab;
 using project_axiom_server;
 
+// Handle debug mode for LocalMultiplayerAgent
+if (args.Contains("--debug"))
+{
+    Console.WriteLine("🐛 Debug mode enabled - Waiting for debugger to attach...");
+    Console.WriteLine($"📍 Process ID: {System.Diagnostics.Process.GetCurrentProcess().Id}");
+    Console.WriteLine("💡 In VS Code: Ctrl+Shift+P → 'Debug: Attach to Process' → Select 'project-axiom-server.exe'");
+    
+    while (!System.Diagnostics.Debugger.IsAttached)
+    {
+        await Task.Delay(1000);
+        Console.Write(".");
+    }
+    
+    Console.WriteLine("\n✅ Debugger attached! Starting server...");
+    System.Diagnostics.Debugger.Break();
+}
+
 var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder.AddConsole().SetMinimumLevel(LogLevel.Information);
