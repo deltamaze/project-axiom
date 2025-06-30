@@ -11,7 +11,7 @@ private static readonly string SharedProjectPath = @"Shared";
 
 try
 {
-  Console.WriteLine("🚀 Building and deploying project-axiom-server to LocalMultiplayerAgent...\n");
+  Console.WriteLine("Building and deploying project-axiom-server to LocalMultiplayerAgent...\n");
 
   // Step 1: Clean and build the server project
   BuildServerProject();
@@ -22,24 +22,24 @@ try
   // Step 3: Create or update MultiplayerSettings.json
   CreateMultiplayerSettings();
 
-  Console.WriteLine("✅ Deployment complete!");
-  Console.WriteLine($"📁 Server files copied to: {LocalAgentPath}");
-  Console.WriteLine("🎮 You can now run LocalMultiplayerAgent.exe to start testing.");
-  Console.WriteLine("\n💡 To debug:");
+  Console.WriteLine("Deployment complete!");
+  Console.WriteLine($"Server files copied to: {LocalAgentPath}");
+  Console.WriteLine("You can now run LocalMultiplayerAgent.exe to start testing.");
+  Console.WriteLine("\nTo debug:");
   Console.WriteLine("   1. Run LocalMultiplayerAgent.exe");
-  Console.WriteLine("   2. In VS Code: Ctrl+Shift+P → 'Debug: Attach to Process'");
+  Console.WriteLine("   2. In VS Code: Ctrl+Shift+P > 'Debug: Attach to Process'");
   Console.WriteLine("   3. Select 'project-axiom-server.exe'");
 }
 catch (Exception ex)
 {
-  Console.WriteLine($"❌ Error: {ex.Message}");
+  Console.WriteLine($"Error: {ex.Message}");
   Environment.Exit(1);
 }
     
     
-    private static void BuildServerProject()
+    static void BuildServerProject()
 {
-  Console.WriteLine("🔨 Building server project...");
+  Console.WriteLine("Building server project...");
 
   // Build in Release mode for better performance
   var buildProcess = Process.Start(new ProcessStartInfo
@@ -58,12 +58,12 @@ catch (Exception ex)
     throw new Exception("Failed to build server project. Check build output for errors.");
   }
 
-  Console.WriteLine("✅ Build successful");
+  Console.WriteLine("Build successful");
 }
 
-private static void CopyServerFiles()
+static void CopyServerFiles()
 {
-  Console.WriteLine("📦 Copying server files...");
+  Console.WriteLine("Copying server files...");
 
   var sourceBinPath = Path.Combine(ServerProjectPath, "bin", "Release", "net8.0");
 
@@ -78,12 +78,12 @@ private static void CopyServerFiles()
   // Copy all files from the build output
   CopyDirectory(sourceBinPath, LocalAgentPath, overwrite: true);
 
-  Console.WriteLine($"✅ Files copied from {sourceBinPath} to {LocalAgentPath}");
+  Console.WriteLine($"Files copied from {sourceBinPath} to {LocalAgentPath}");
 }
 
-private static void CreateMultiplayerSettings()
+static void CreateMultiplayerSettings()
 {
-  Console.WriteLine("⚙️ Creating MultiplayerSettings.json...");
+  Console.WriteLine("Creating MultiplayerSettings.json...");
 
   var settings = new
   {
@@ -112,10 +112,10 @@ private static void CreateMultiplayerSettings()
   // Create output directory
   Directory.CreateDirectory(Path.Combine(LocalAgentPath, "output"));
 
-  Console.WriteLine($"✅ MultiplayerSettings.json created at {settingsPath}");
+  Console.WriteLine($"MultiplayerSettings.json created at {settingsPath}");
 }
 
-private static void CopyDirectory(string sourceDir, string destDir, bool overwrite = false)
+static void CopyDirectory(string sourceDir, string destDir, bool overwrite = false)
 {
   var dir = new DirectoryInfo(sourceDir);
 
