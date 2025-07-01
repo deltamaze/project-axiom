@@ -1,6 +1,8 @@
 ## Game Design Document: Block Brawlers (Working Title) - Revised
 
-**Document Version:** 1.2
+**Document Version:*### 6. Gameplay Mechanics
+
+#### 6.1. Character & Combat.2
 **Date:** June 9, 2025
 **Platform:** PC (Windows/macOS/Linux) via MonoGame
 **Development Focus:** Code-first, AI-assisted development in Visual Studio Code. Minimal reliance on visual editors.
@@ -33,7 +35,47 @@
 
 ---
 
-### 4. Technical Requirements & Architecture Philosophy
+### 4. Development Environment Setup
+
+**Prerequisites for developers getting started:**
+
+#### 4.1. Required Tools
+- **Visual Studio Code** - Primary development environment
+- **.NET 8.0 SDK** - For building C# projects
+- **MonoGame** - Game development framework
+- **Azure PlayFab LocalMultiplayerAgent** - Required for local server testing
+
+#### 4.2. LocalMultiplayerAgent Setup
+The LocalMultiplayerAgent is essential for testing your dedicated server locally before deploying to Azure PlayFab.
+
+1. **Download LocalMultiplayerAgent:**
+   - Go to the [PlayFab LocalMultiplayerAgent releases](https://github.com/PlayFab/LocalMultiplayerAgent/releases)
+   - Download the latest release for Windows
+   - Extract to `C:\Main\Tools\LocalMultiplayerAgent` (or update the path in `deploy-local-server.bat`)
+
+2. **Verify Installation:**
+   - The extracted folder should contain `LocalMultiplayerAgent.exe`
+   - You should see sample configuration files like `MultiplayerSettingsLinuxContainersOnWindowsSample.json`
+
+3. **First-time Setup:**
+   - Run the `deploy-local-server.bat` script from the project root
+   - This will build your server, create the necessary configuration files, and deploy to the LocalMultiplayerAgent
+   - The LocalMultiplayerAgent will automatically start after successful deployment
+
+#### 4.3. PlayFab Account Setup
+- Create a free developer account at [PlayFab.com](https://playfab.com)
+- Create a new "Title" for Block Brawlers in the PlayFab Game Manager dashboard
+- Note your Title ID for configuration
+
+#### 4.4. Development Workflow
+1. Make changes to your game code
+2. Run `deploy-local-server.bat` to build and deploy the server locally
+3. Test multiplayer functionality using the LocalMultiplayerAgent
+4. Debug by attaching to the `project-axiom-server.exe` process as needed
+
+---
+
+### 5. Technical Requirements & Architecture Philosophy
 
 -   **Engine:** MonoGame (C#).
 -   **Development Environment:** Visual Studio Code.
@@ -47,7 +89,7 @@
 
 ---
 
-### 5. Gameplay Mechanics
+### 6. Gameplay Mechanics
 
 #### 5.1. Character & Combat
 
@@ -66,7 +108,7 @@
 - **Death & Respawn:** Players respawn after a short delay at a designated spawn point in battlegrounds.
 - **Damage Types:** Spells can inflict different damage types (e.g., Arcane, Fire, Frost, Physical). Resistance/vulnerability system (lower priority).
 
-#### 5.2. Base Classes & Spells
+#### 6.2. Base Classes & Spells
 
 Players choose one of three base classes, each with its own thematic focus, armor type, primary resource, and a unique pool of approximately **30 spells** from which to select their 8 active abilities.
 
@@ -97,7 +139,7 @@ Players choose one of three base classes, each with its own thematic focus, armo
 - **Spell Definition:** Each spell will be defined by a structured C# class or data object (e.g., `SpellData` containing name, description, resource cost, cooldown, range, damage type, cast time, and references to associated visual effects and sound effects). This is a prime area for AI assistance in defining and balancing.
     
 
-#### 5.3. Gear & Progression
+#### 6.3. Gear & Progression
 
 - **Gear Slots:** Head, Chest, Legs, Hands, Feet, Weapon, Trinket (2).
 - **Stat Increments:** Gear provides minor statistical improvements (e.g., +Health, +Resource Pool, +Spell Power, +Cooldown Reduction). Each class benefits more from certain stats.
@@ -105,7 +147,7 @@ Players choose one of three base classes, each with its own thematic focus, armo
 - **Acquisition:** Earned through playing game modes (rewards for winning, performance).
 - **Cash Store (Future):** Cosmetic items only. No pay-to-win elements. Aesthetic gear from the cash store should _never_ be statistically better than earned gear. This is a low-priority feature for initial development.
 
-#### 5.4. Multiplayer & Game Modes
+#### 6.4. Multiplayer & Game Modes
 
 - **Lobby/Queue System:** Players queue for desired game modes.
 - **Matchmaking:** Simple matchmaking based on queue time and game mode selection. (No complex ELO/MMR initially).
@@ -132,7 +174,7 @@ Players choose one of three base classes, each with its own thematic focus, armo
 
 ---
 
-### 6. Initial Development Iteration Plan (MVP Focus)
+### 7. Initial Development Iteration Plan (MVP Focus)
 
 **Phase 1: Local Prototyping (Client-Side Only)**
 
@@ -187,7 +229,7 @@ Players choose one of three base classes, each with its own thematic focus, armo
 26. **Server Logging & Persistence:** Implement basic server-side logging. For the MVP, player state like health/position does not need to persist between sessions, but equipped spells (stored in PlayFab Player Data) should.
 27. **Basic Player Respawn (Server-Side):** Move the death/respawn logic to the server. When a player's health reaches zero, the server manages their respawn timer and new position.
 
-### 7. AI/LLM Integration Strategy
+### 8. AI/LLM Integration Strategy
 
 - **Code Generation:** Leverage LLMs (e.g., GitHub Copilot, dedicated prompts) to generate C# classes for:
     - `SpellData` structures, including boilerplate for various effects.
