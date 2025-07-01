@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Text.Json;
+using System.IO.Compression;
 
 
 private static readonly string LocalAgentPath = @"C:\Main\Tools\LocalMultiplayerAgent";
@@ -19,7 +20,10 @@ try
   // Step 2: Copy server files to LocalMultiplayerAgent directory
   CopyServerFiles();
 
-  // Step 3: Create or update MultiplayerSettings.json
+  // Step 3: Create zip file for assets
+  CreateServerZip();
+
+  // Step 4: Create or update MultiplayerSettings.json
   CreateMultiplayerSettings();
 
   Console.WriteLine("Deployment complete!");
@@ -81,6 +85,25 @@ static void CopyServerFiles()
   Console.WriteLine($"Files copied from {sourceBinPath} to {LocalAgentPath}");
 }
 
+static void CreateServerZip()
+{
+  Console.WriteLine("Creating server assets zip...");
+
+  var sourceBinPath = Path.Combine(ServerProjectPath, "bin", "Release", "net8.0");
+  var zipPath = Path.Combine(LocalAgentPath, "project-axiom-server.zip");
+
+  // Remove existing zip if it exists
+  if (File.Exists(zipPath))
+  {
+    File.Delete(zipPath);
+  }
+
+  // Create zip file from the server binaries
+  ZipFile.CreateFromDirectory(sourceBinPath, zipPath);
+  
+  Console.WriteLine($"Server assets zip created at {zipPath}");
+}
+
 static void CreateMultiplayerSettings()
 {
   Console.WriteLine("Creating MultiplayerSettings.json...");
@@ -90,14 +113,50 @@ static void CreateMultiplayerSettings()
     RunContainer = false,
     OutputFolder = Path.Combine(LocalAgentPath, "output"),
     NumHeartBeatsForActivateResponse = 10,
-    NumHeartBeatsForTerminateResponse = 10,
+    NumHeartBeatsForTerminateResponse = 60,
     TitleId = "",
     BuildId = "00000000-0000-0000-0000-000000000000",
     Region = "LocalTestRegion",
+    AgentListeningPort = 56001,
     ProcessStartParameters = new
     {
       StartGameCommand = "project-axiom-server.exe",
       Arguments = "--debug"
+    },
+    AssetDetails = new[]
+    {
+      new
+      {
+        MountPath = LocalAgentPath,
+        LocalFilePath = Path.Combine(LocalAgentPath, "project-axiom-server.zip"),
+        SasTokens = new object[0]
+      }
+    },
+    DeploymentMetadata = new
+    {
+      Environment = "LOCAL",
+      FeaturesEnabled = "DebugMode"
+    },
+    PortMappingsList = new[]
+    {
+      new[]
+      {
+        new
+        {
+          NodePort = 56100,
+          GamePort = new
+          {
+            Name = "gameport",
+            Number = 7777,
+            Protocol = "TCP"
+          }
+        }
+      }
+    },
+    SessionConfig = new
+    {
+      SessionId = "ba67d671-512a-4e7d-a38c-2329ce181946",
+      InitialPlayers = new[] { "Player1" }
     }
   };
 
