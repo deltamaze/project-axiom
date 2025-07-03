@@ -44,10 +44,24 @@ public class TrainingGroundsState : GameState
     private SpellBarState _spellBarState;
     private MessageDisplay _messageDisplay;
 
+    // Server connection manager (null for local-only mode)
+    private ServerAllocationManager _serverManager;
+
     public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, Character character)
         : base(game, graphicsDevice, content)
     {
         _character = character ?? new Character("Default", CharacterClass.Brawler);
+        
+        // Initialize UI systems
+        _spellBarState = new SpellBarState();
+        _messageDisplay = new MessageDisplay();
+    }
+
+    public TrainingGroundsState(Game1 game, GraphicsDevice graphicsDevice, ContentManager content, Character character, ServerAllocationManager serverManager)
+        : base(game, graphicsDevice, content)
+    {
+        _character = character ?? new Character("Default", CharacterClass.Brawler);
+        _serverManager = serverManager;
         
         // Initialize UI systems
         _spellBarState = new SpellBarState();

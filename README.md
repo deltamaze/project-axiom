@@ -203,7 +203,7 @@ Players choose one of three base classes, each with its own thematic focus, armo
     * In the client, create a basic UI for player registration and login.
     * Implement calls to `PlayFabClientAPI.RegisterPlayFabUser` and `LoginWithEmailAddress`.
     * **Note:** This is a placeholder system for MVP. No password reset or advanced features are needed. PlayFab handles the security automatically.
-17. **Basic Player Data:** ✅ **COMPLETED** - Upon successful login, store and retrieve the player's chosen class using PlayFab's Player Data system (`UpdateUserData`, `GetUserData`). This replaces local save files for character data.
+17. **Basic Player Data:**  - Upon successful login, store and retrieve the player's chosen class using PlayFab's Player Data system (`UpdateUserData`, `GetUserData`). This replaces local save files for character data.
     * Implemented character saving to PlayFab when creating a new character
     * Added `CharacterSelectionState` that automatically loads saved character data
     * Shows character selection screen if a character exists, otherwise prompts for character creation

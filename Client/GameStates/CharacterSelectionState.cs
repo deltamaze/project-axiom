@@ -131,7 +131,7 @@ public class CharacterSelectionState : GameState
         if (_loadedCharacter != null)
         {
             System.Diagnostics.Debug.WriteLine($"Playing with character: {_loadedCharacter.Name}");
-            _game.ChangeState(new TrainingGroundsState(_game, _graphicsDevice, _content, _loadedCharacter));
+            _game.ChangeState(new ServerAllocationState(_game, _graphicsDevice, _content, _loadedCharacter));
         }
     }    private void DeleteButton_Click(object sender, System.EventArgs e)
     {
