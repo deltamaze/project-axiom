@@ -218,11 +218,16 @@ Players choose one of three base classes, each with its own thematic focus, armo
     * Package the `project-axiom-server` build into a .zip file.
     * In the PlayFab dashboard, create a new Multiplayer Server "Build" and upload the zip file.
     * Configure the build to run on a specific VM size (e.g., a small Dv2) and define network ports.
-21. **Basic Server Allocation:**
+21. **Basic Server Allocation:** ✅ **COMPLETE**
     * In the client, when the player wants to enter the "Training Grounds," call `PlayFabClientAPI.RequestMultiplayerServer`.
     * This will request PlayFab to find an available server from the fleet you configured.
     * On success, PlayFab returns the IP address and port of the allocated server. The client then connects to this endpoint.
-22. **Authoritative Movement:** Implement the server-authoritative movement as described in the original steps 26-28. The client sends inputs, the server processes them and holds the true position, and the client reconciles its predicted state with the server's authoritative state.
+22. **Authoritative Movement:** ✅ **COMPLETE** - Implement the server-authoritative movement as described in the original steps 26-28. The client sends inputs, the server processes them and holds the true position, and the client reconciles its predicted state with the server's authoritative state.
+    * **Client-side prediction:** `ClientMovementSystem` handles local movement prediction
+    * **Server authority:** `ServerMovementSystem` processes inputs and maintains authoritative positions
+    * **Client reconciliation:** Client receives server updates and reconciles with prediction
+    * **Network protocol:** JSON-based message system for input/position updates
+    * **Anti-cheat:** Basic movement validation on server side
 23. **Authoritative Targeting & Spells:** Re-implement the "Slam" ability to be fully server-authoritative as described in the original steps 30-31. The client sends a *request* to cast a spell, and the server validates and executes it.
 24. **Server-Side Player State:** Move all critical player state (health, resource, cooldowns, position) to the server. The client's UI should only reflect the state sent by the server.
 25. **Implement Remaining Spells:** Implement the basic attacks for Ranger ("Multi-shot") and Spellcaster ("Magic Missile") following the same server-authoritative pattern.

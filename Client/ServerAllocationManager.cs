@@ -3,7 +3,9 @@ using PlayFab.ClientModels;
 using PlayFab.MultiplayerModels;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
+using project_axiom.Shared.Networking;
 
 namespace project_axiom;
 
@@ -15,12 +17,18 @@ public class ServerAllocationManager
     private UdpClient _udpClient;
     private IPEndPoint _serverEndpoint;
     private bool _isConnected;
+    private bool _isListening;
+    private CancellationTokenSource _listeningCancellation;
     
     public string ServerIP { get; private set; }
     public int ServerPort { get; private set; }
     public string SessionId { get; private set; }
     public bool IsConnected => _isConnected;
     public string LastError { get; private set; }
+
+    // Event for receiving server messages
+    public event Action<PlayerPositionMessage> OnPlayerPositionReceived;
+    public event Action<GameStateUpdateMessage> OnGameStateUpdateReceived;
 
     public ServerAllocationManager()
     {
@@ -173,6 +181,9 @@ public class ServerAllocationManager
             Console.WriteLine($"Server response: {responseMessage}");
             _isConnected = true;
             
+            // Start listening for server messages
+            _ = StartListeningForMessagesAsync();
+
             return true;
         }
         catch (Exception ex)
@@ -180,6 +191,80 @@ public class ServerAllocationManager
             LastError = $"Failed to connect to server: {ex.Message}";
             Console.WriteLine($"Failed to connect to server: {ex.Message}");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Start listening for messages from the server
+    /// </summary>
+    private async Task StartListeningForMessagesAsync()
+    {
+        try
+        {
+            _isListening = true;
+            _listeningCancellation = new CancellationTokenSource();
+
+            while (_isListening)
+            {
+                var receiveResult = await _udpClient.ReceiveAsync();
+                
+                // Process the received message
+                ProcessServerMessage(receiveResult.Buffer);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Listening was cancelled, simply exit the method
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error while listening for server messages: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Process a message received from the server
+    /// </summary>
+    private void ProcessServerMessage(byte[] message)
+    {
+        try
+        {
+            var json = System.Text.Encoding.UTF8.GetString(message);
+            
+            // Check if it's a JSON message
+            if (json.StartsWith("{"))
+            {
+                using var document = System.Text.Json.JsonDocument.Parse(json);
+                var messageType = document.RootElement.GetProperty("MessageType").GetString();
+
+                switch (messageType)
+                {
+                    case "PlayerPosition":
+                        var positionMessage = NetworkMessage.Deserialize<PlayerPositionMessage>(message);
+                        if (positionMessage != null)
+                            OnPlayerPositionReceived?.Invoke(positionMessage);
+                        break;
+                        
+                    case "GameStateUpdate":
+                        var gameStateMessage = NetworkMessage.Deserialize<GameStateUpdateMessage>(message);
+                        if (gameStateMessage != null)
+                            OnGameStateUpdateReceived?.Invoke(gameStateMessage);
+                        break;
+                        
+                    default:
+                        Console.WriteLine($"Unknown message type: {messageType}");
+                        break;
+                }
+            }
+            else
+            {
+                // Handle text messages (heartbeat, etc.)
+                Console.WriteLine($"Received text message: {json}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing server message: {ex.Message}");
         }
     }
 
@@ -213,6 +298,8 @@ public class ServerAllocationManager
         Console.WriteLine("Disconnecting from game server...");
         
         _isConnected = false;
+        _isListening = false;
+        _listeningCancellation?.Cancel();
         _udpClient?.Close();
         _udpClient?.Dispose();
         _udpClient = null;

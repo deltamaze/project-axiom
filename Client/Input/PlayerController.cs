@@ -2,6 +2,7 @@ using project_axiom.Spells;
 using project_axiom.Shared.Spells;
 using project_axiom.Shared;
 using project_axiom.UI;
+using project_axiom.Client.Networking;
 
 namespace project_axiom.Input;
 
@@ -324,5 +325,69 @@ public class PlayerController
       default:
         return "";
     }
+  }
+
+  /// <summary>
+  /// Get current input state for networked movement
+  /// </summary>
+  public (bool moveForward, bool moveBackward, bool moveLeft, bool moveRight, bool moveUp, bool moveDown) GetMovementInput()
+  {
+    KeyboardState keyboardState = Keyboard.GetState();
+    
+    return (
+      keyboardState.IsKeyDown(Keys.W),
+      keyboardState.IsKeyDown(Keys.S),
+      keyboardState.IsKeyDown(Keys.A),
+      keyboardState.IsKeyDown(Keys.D),
+      keyboardState.IsKeyDown(Keys.Space),
+      keyboardState.IsKeyDown(Keys.LeftShift)
+    );
+  }
+
+  /// <summary>
+  /// Update with networked movement system
+  /// </summary>
+  public void UpdateWithNetworking(GameTime gameTime, ClientMovementSystem movementSystem)
+  {
+    KeyboardState currentKeyboardState = Keyboard.GetState();
+    MouseState currentMouseState = Mouse.GetState();
+
+    // Toggle mouse capture
+    if (currentKeyboardState.IsKeyDown(Keys.M) && !_previousKeyboardState.IsKeyDown(Keys.M))
+    {
+      _isMouseCaptured = !_isMouseCaptured;
+    }
+
+    float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+    // Handle mouse look
+    if (_isMouseCaptured)
+    {
+      HandleMouseLook(currentMouseState);
+    }
+
+    // Send input to movement system instead of handling locally
+    var (moveForward, moveBackward, moveLeft, moveRight, moveUp, moveDown) = GetMovementInput();
+    movementSystem.ProcessInput(moveForward, moveBackward, moveLeft, moveRight, moveUp, moveDown, 
+                               RotationY, RotationX, deltaTime);
+
+    // Update our position from the movement system's predicted position
+    Position = movementSystem.GetDisplayPosition();
+    (float rotationY, float rotationX) = movementSystem.GetDisplayRotation();
+    RotationY = rotationY;
+    RotationX = rotationX;
+
+    // Handle spell casting
+    HandleSpellCasting(currentKeyboardState);
+
+    // Handle resource testing (Section 6.8 - for demonstration purposes)
+    HandleResourceTesting(currentKeyboardState);
+
+    // Update spell system
+    _spellCastingSystem.Update(deltaTime);
+
+    // Update previous states
+    _previousKeyboardState = currentKeyboardState;
+    _previousMouseState = currentMouseState;
   }
 }

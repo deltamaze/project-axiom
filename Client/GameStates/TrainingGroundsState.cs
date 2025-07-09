@@ -2,6 +2,8 @@ using project_axiom.UI;
 using project_axiom.Spells;
 using project_axiom.Shared;
 using project_axiom.Shared.Spells;
+using project_axiom.Client.Networking;
+using project_axiom.Shared.Networking;
 
 namespace project_axiom.GameStates;
 
@@ -16,6 +18,7 @@ public class TrainingGroundsState : GameState
     // Input and camera components
     private PlayerController _playerController;
     private CameraController _cameraController;
+    private ClientMovementSystem _clientMovementSystem;
 
     // Character information
     private Character _character;
@@ -124,9 +127,29 @@ public class TrainingGroundsState : GameState
         Vector3 startPosition = new Vector3(0, GeometryBuilder.GROUND_Y + PLAYER_GROUND_OFFSET, 0);
         _playerController = new PlayerController(_graphicsDevice, _character, startPosition);
         
+        // Initialize client movement system if we have a server connection
+        if (_serverManager != null)
+        {
+            _clientMovementSystem = new ClientMovementSystem(_serverManager, startPosition);
+            
+            // Subscribe to server position updates
+            _serverManager.OnPlayerPositionReceived += OnServerPositionUpdate;
+        }
+        
         // Connect player controller to UI systems
         _playerController.MessageDisplay = _messageDisplay;
         _playerController.OnSpellCast += OnPlayerSpellCast;
+    }
+
+    /// <summary>
+    /// Handle server position updates
+    /// </summary>
+    private void OnServerPositionUpdate(PlayerPositionMessage positionUpdate)
+    {
+        if (_clientMovementSystem != null)
+        {
+            _clientMovementSystem.ReceiveServerUpdate(positionUpdate);
+        }
     }
 
     /// <summary>
@@ -172,7 +195,16 @@ public class TrainingGroundsState : GameState
         }
 
         // Update player input and movement
-        _playerController.Update(gameTime);
+        if (_clientMovementSystem != null)
+        {
+            // Use networked movement
+            _playerController.UpdateWithNetworking(gameTime, _clientMovementSystem);
+        }
+        else
+        {
+            // Use local movement (fallback)
+            _playerController.Update(gameTime);
+        }
 
         // Update camera based on player position and rotation
         _cameraController.Update(

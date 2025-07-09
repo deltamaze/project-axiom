@@ -3,6 +3,9 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using project_axiom.Shared.Networking;
+using project_axiom_server.Game;
+using Microsoft.Xna.Framework;
 
 namespace project_axiom_server;
 
@@ -11,12 +14,15 @@ public class GameSessionManager
     private readonly ILogger<GameSessionManager> _logger;
     private readonly PlayFabServerManager _playfabManager;
     private readonly ConcurrentDictionary<string, ConnectedPlayer> _connectedPlayers = new();
+    private readonly ServerMovementSystem _movementSystem;
     private readonly object _gameStateLock = new();
     private bool _isRunning;
-      public GameSessionManager(ILoggerFactory loggerFactory, PlayFabServerManager playfabManager)
+    
+    public GameSessionManager(ILoggerFactory loggerFactory, PlayFabServerManager playfabManager)
     {
         _logger = loggerFactory.CreateLogger<GameSessionManager>();
         _playfabManager = playfabManager;
+        _movementSystem = new ServerMovementSystem(loggerFactory);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -36,6 +42,13 @@ public class GameSessionManager
         {
             var message = Encoding.UTF8.GetString(data);
             _logger.LogDebug($"Received message from {clientEndpoint}: {message}");
+
+            // Check if this is a JSON network message
+            if (message.StartsWith("{"))
+            {
+                await HandleNetworkMessage(clientEndpoint, data);
+                return;
+            }
 
             // Basic message handling - this will be expanded
             if (message.StartsWith("CONNECT:"))
@@ -61,6 +74,48 @@ public class GameSessionManager
         }
     }
 
+    private async Task HandleNetworkMessage(IPEndPoint clientEndpoint, byte[] data)
+    {
+        try
+        {
+            var json = Encoding.UTF8.GetString(data);
+            using var document = JsonDocument.Parse(json);
+            var messageType = document.RootElement.GetProperty("MessageType").GetString();
+
+            var playerKey = $"{clientEndpoint.Address}:{clientEndpoint.Port}";
+            if (!_connectedPlayers.TryGetValue(playerKey, out var connectedPlayer))
+            {
+                _logger.LogWarning($"Received network message from unknown client: {clientEndpoint}");
+                return;
+            }
+
+            switch (messageType)
+            {
+                case "PlayerInput":
+                    var inputMessage = NetworkMessage.Deserialize<PlayerInputMessage>(data);
+                    if (inputMessage != null)
+                    {
+                        var positionUpdate = _movementSystem.ProcessPlayerInput(connectedPlayer.PlayFabId, inputMessage);
+                        
+                        if (positionUpdate != null)
+                        {
+                            // Send position update back to the client
+                            await SendMessageToClient(clientEndpoint, positionUpdate.Serialize());
+                        }
+                    }
+                    break;
+                    
+                default:
+                    _logger.LogDebug($"Unknown network message type: {messageType}");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error handling network message from {clientEndpoint}");
+        }
+    }
+
     private async Task HandlePlayerConnect(IPEndPoint clientEndpoint, string message)
     {
         try
@@ -82,7 +137,13 @@ public class GameSessionManager
                 EndPoint = clientEndpoint,
                 ConnectedAt = DateTime.UtcNow,
                 LastHeartbeat = DateTime.UtcNow
-            };            _connectedPlayers.TryAdd(playerKey, player);
+            };
+
+            _connectedPlayers.TryAdd(playerKey, player);
+            
+            // Add player to movement system with default starting position
+            var startPosition = new Vector3(0, 0.51f, 0); // Default spawn position
+            _movementSystem.AddPlayer(playFabId, startPosition);
             
             _logger.LogInformation($"Player connected: {playFabId} from {clientEndpoint}");
             
@@ -107,6 +168,9 @@ public class GameSessionManager
               if (_connectedPlayers.TryRemove(playerKey, out var player))
             {
                 _logger.LogInformation($"Player disconnected: {player.PlayFabId} from {clientEndpoint}");
+                
+                // Remove from movement system
+                _movementSystem.RemovePlayer(player.PlayFabId);
                 
                 // Notify PlayFab about the player disconnection
                 await _playfabManager.NotifyPlayerDisconnected(player.PlayFabId);
@@ -164,6 +228,21 @@ public class GameSessionManager
         }
     }
 
+    private async Task SendMessageToClient(IPEndPoint clientEndpoint, byte[] data)
+    {
+        try
+        {
+            // This would be implemented with the actual UDP socket
+            // For now, just log what we would send
+            _logger.LogDebug($"Sending {data.Length} bytes to {clientEndpoint}");
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to send data to {clientEndpoint}");
+        }
+    }
+
     private async Task GameLoopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting game loop...");
@@ -201,9 +280,7 @@ public class GameSessionManager
         }
         
         _logger.LogInformation("Game loop stopped");
-    }
-
-    private async Task CleanupDisconnectedPlayers()
+    }    private async Task CleanupDisconnectedPlayers()
     {
         var cutoffTime = DateTime.UtcNow.AddSeconds(-30); // 30 second timeout
         var playersToRemove = new List<string>();
@@ -219,8 +296,15 @@ public class GameSessionManager
         
         foreach (var playerKey in playersToRemove)
         {
-            _connectedPlayers.TryRemove(playerKey, out _);
+            if (_connectedPlayers.TryRemove(playerKey, out var player))
+            {
+                // Remove from movement system
+                _movementSystem.RemovePlayer(player.PlayFabId);
+            }
         }
+        
+        // Clean up movement system inactive players
+        _movementSystem.CleanupInactivePlayers(TimeSpan.FromSeconds(30));
         
         await Task.CompletedTask;
     }
@@ -233,15 +317,28 @@ public class GameSessionManager
             // Update positions, health, cooldowns, etc.
             // For now, this is just a placeholder
         }
-        
+
         await Task.CompletedTask;
     }
 
     private async Task SendGameStateUpdates()
     {
-        // Send periodic game state updates to all connected clients
-        // This will be expanded with actual game state serialization
-        await Task.CompletedTask;
+        if (_connectedPlayers.Count == 0)
+            return;
+
+        // Get current game state from movement system
+        var gameStateUpdate = _movementSystem.GetGameStateUpdate();
+        var updateData = gameStateUpdate.Serialize();
+
+        // Broadcast to all connected clients
+        var tasks = new List<Task>();
+        foreach (var kvp in _connectedPlayers)
+        {
+            var player = kvp.Value;
+            tasks.Add(SendMessageToClient(player.EndPoint, updateData));
+        }
+
+        await Task.WhenAll(tasks);
     }
 
     public int ConnectedPlayerCount => _connectedPlayers.Count;
