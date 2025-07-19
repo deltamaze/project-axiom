@@ -93,7 +93,7 @@ Basic UDP message protocol:
 ## File Structure
 
 ```
-project-axiom-server/
+Server/
 ├── Program.cs                  # Entry point
 ├── GameServer.cs              # Main server class
 ├── PlayFabServerManager.cs    # PlayFab SDK integration

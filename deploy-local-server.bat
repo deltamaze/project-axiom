@@ -1,5 +1,5 @@
 @echo off
-echo Building and deploying project-axiom-server to LocalMultiplayerAgent...
+echo Building and deploying Server to LocalMultiplayerAgent...
 dotnet-script DeployLocalServer.cs
 if %ERRORLEVEL% EQU 0 (
     echo.

@@ -14,7 +14,7 @@ This document describes how to test the newly implemented server-authoritative m
   - Provides smooth interpolated display position
 
 ### 2. Server-Side Authority (`ServerMovementSystem`)
-- **Location**: `project-axiom-server/Game/ServerMovementSystem.cs`
+- **Location**: `Server/Game/ServerMovementSystem.cs`
 - **Purpose**: Processes player inputs and maintains authoritative game state
 - **Key Features**:
   - Validates and processes player input messages
@@ -56,7 +56,7 @@ This document describes how to test the newly implemented server-authoritative m
 
 ### Prerequisites:
 1. Build all projects: `dotnet build`
-2. Run the server: `dotnet run --project project-axiom-server`
+2. Run the server: `dotnet run --project Server`
 3. Run the client: `dotnet run --project Client`
 
 ### Test Scenarios:

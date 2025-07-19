@@ -6,13 +6,13 @@ using System.IO.Compression;
 
 
 private static readonly string LocalAgentPath = @"C:\Main\Tools\LocalMultiplayerAgent";
-private static readonly string ServerProjectPath = @"project-axiom-server";
+private static readonly string ServerProjectPath = @"Server";
 private static readonly string SharedProjectPath = @"Shared";
 
 
 try
 {
-  Console.WriteLine("Building and deploying project-axiom-server to LocalMultiplayerAgent...\n");
+  Console.WriteLine("Building and deploying Server to LocalMultiplayerAgent...\n");
 
   // Step 1: Clean and build the server project
   BuildServerProject();
@@ -32,7 +32,7 @@ try
   Console.WriteLine("\nTo debug:");
   Console.WriteLine("   1. Run LocalMultiplayerAgent.exe");
   Console.WriteLine("   2. In VS Code: Ctrl+Shift+P > 'Debug: Attach to Process'");
-  Console.WriteLine("   3. Select 'project-axiom-server.exe'");
+  Console.WriteLine("   3. Select 'Server.exe'");
 }
 catch (Exception ex)
 {
@@ -90,7 +90,7 @@ static void CreateServerZip()
   Console.WriteLine("Creating server assets zip...");
 
   var sourceBinPath = Path.Combine(ServerProjectPath, "bin", "Release", "net8.0");
-  var zipPath = Path.Combine(LocalAgentPath, "project-axiom-server.zip");
+  var zipPath = Path.Combine(LocalAgentPath, "Server.zip");
 
   // Remove existing zip if it exists
   if (File.Exists(zipPath))
@@ -120,7 +120,7 @@ static void CreateMultiplayerSettings()
     AgentListeningPort = 56001,
     ProcessStartParameters = new
     {
-      StartGameCommand = "project-axiom-server.exe",
+      StartGameCommand = "Server.exe",
       Arguments = "--debug"
     },
     AssetDetails = new[]
@@ -128,7 +128,7 @@ static void CreateMultiplayerSettings()
       new
       {
         MountPath = LocalAgentPath,
-        LocalFilePath = Path.Combine(LocalAgentPath, "project-axiom-server.zip"),
+        LocalFilePath = Path.Combine(LocalAgentPath, "Server.zip"),
         SasTokens = new object[0]
       }
     },
