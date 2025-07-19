@@ -172,6 +172,13 @@ public class ServerAllocationManager
                 Console.WriteLine($"Connection timeout to server {ServerIP}:{ServerPort}");
                 // For local development, we'll still consider this a success
                 _isConnected = IsLocalDevelopmentMode();
+                
+                if (_isConnected)
+                {
+                    // Start listening for server messages even on timeout in local mode
+                    _ = StartListeningForMessagesAsync();
+                }
+                
                 return _isConnected;
             }
 

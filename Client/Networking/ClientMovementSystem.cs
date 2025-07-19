@@ -149,19 +149,30 @@ public class ClientMovementSystem
     /// </summary>
     private Vector3 ApplyBoundaryConstraints(Vector3 newPosition)
     {
-        const float GROUND_SIZE = 40f; // From GeometryBuilder.GROUND_SIZE
-        const float GROUND_Y = 0f; // From GeometryBuilder.GROUND_Y
-        const float PLAYER_GROUND_OFFSET = 0.51f;
+        Vector3 originalPosition = newPosition;
         
-        float halfSize = GROUND_SIZE / 2f;
+        // Import the correct values from GeometryBuilder
+        float halfSize = project_axiom.Rendering.GeometryBuilder.GROUND_SIZE / 2f;
         float playerRadius = 0.5f; // Half the size of player cube
+        
+        float minBound = -halfSize + playerRadius;
+        float maxBound = halfSize - playerRadius;
 
         // Constrain to ground boundaries
-        newPosition.X = MathHelper.Clamp(newPosition.X, -halfSize + playerRadius, halfSize - playerRadius);
-        newPosition.Z = MathHelper.Clamp(newPosition.Z, -halfSize + playerRadius, halfSize - playerRadius);
+        newPosition.X = MathHelper.Clamp(newPosition.X, minBound, maxBound);
+        newPosition.Z = MathHelper.Clamp(newPosition.Z, minBound, maxBound);
 
         // Keep player above ground level (with small offset to prevent z-fighting)
-        newPosition.Y = Math.Max(newPosition.Y, GROUND_Y + PLAYER_GROUND_OFFSET);
+        newPosition.Y = Math.Max(newPosition.Y, project_axiom.Rendering.GeometryBuilder.GROUND_Y + 0.51f);
+
+        // Log when boundaries are hit
+        if (originalPosition != newPosition)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CLIENT] Boundary constraint applied:");
+            System.Diagnostics.Debug.WriteLine($"  Original: {originalPosition}");
+            System.Diagnostics.Debug.WriteLine($"  Constrained: {newPosition}");
+            System.Diagnostics.Debug.WriteLine($"  Bounds: X/Z ∈ [{minBound:F2}, {maxBound:F2}], Ground size: {project_axiom.Rendering.GeometryBuilder.GROUND_SIZE}");
+        }
 
         return newPosition;
     }

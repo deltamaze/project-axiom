@@ -253,15 +253,29 @@ public class PlayerController
   /// </summary>
   private Vector3 ApplyBoundaryConstraints(Vector3 newPosition)
   {
+    Vector3 originalPosition = newPosition;
+    
     float halfSize = GeometryBuilder.GROUND_SIZE / 2f;
     float playerRadius = 0.5f; // Half the size of player cube
+    
+    float minBound = -halfSize + playerRadius;
+    float maxBound = halfSize - playerRadius;
 
     // Constrain to ground boundaries
-    newPosition.X = MathHelper.Clamp(newPosition.X, -halfSize + playerRadius, halfSize - playerRadius);
-    newPosition.Z = MathHelper.Clamp(newPosition.Z, -halfSize + playerRadius, halfSize - playerRadius);
+    newPosition.X = MathHelper.Clamp(newPosition.X, minBound, maxBound);
+    newPosition.Z = MathHelper.Clamp(newPosition.Z, minBound, maxBound);
 
     // Keep player above ground level (with small offset to prevent z-fighting)
     newPosition.Y = Math.Max(newPosition.Y, GeometryBuilder.GROUND_Y + PLAYER_GROUND_OFFSET);
+
+    // Log when boundaries are hit (but only for PlayerController, not networked movement)
+    if (originalPosition != newPosition)
+    {
+      System.Diagnostics.Debug.WriteLine($"[PLAYER CONTROLLER] Boundary constraint applied:");
+      System.Diagnostics.Debug.WriteLine($"  Original: {originalPosition}");
+      System.Diagnostics.Debug.WriteLine($"  Constrained: {newPosition}");
+      System.Diagnostics.Debug.WriteLine($"  Bounds: X/Z ∈ [{minBound:F2}, {maxBound:F2}], Ground size: {GeometryBuilder.GROUND_SIZE}");
+    }
 
     return newPosition;
   }

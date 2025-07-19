@@ -31,6 +31,11 @@ public class GameServer
             await StartUdpServerAsync();
 
             _logger.LogInformation("Starting game session manager...");
+            // Pass UDP server reference to game session manager
+            if (_udpServer != null)
+            {
+                _gameSessionManager.SetUdpServer(_udpServer);
+            }
             await _gameSessionManager.StartAsync(_cancellationTokenSource.Token);
 
             _isRunning = true;

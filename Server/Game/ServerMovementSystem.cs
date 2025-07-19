@@ -39,7 +39,7 @@ public class ServerMovementSystem
     
     // Movement parameters (should match client)
     private readonly float _playerSpeed = 5.0f;
-    private const float GROUND_SIZE = 40f;
+    private const float GROUND_SIZE = 50f; // Should match GeometryBuilder.GROUND_SIZE
     private const float GROUND_Y = 0f;
     private const float PLAYER_GROUND_OFFSET = 0.51f;
     
@@ -202,15 +202,29 @@ public class ServerMovementSystem
     /// </summary>
     private Vector3 ApplyBoundaryConstraints(Vector3 newPosition)
     {
+        Vector3 originalPosition = newPosition;
+        
         float halfSize = GROUND_SIZE / 2f;
         float playerRadius = 0.5f; // Half the size of player cube
+        
+        float minBound = -halfSize + playerRadius;
+        float maxBound = halfSize - playerRadius;
 
         // Constrain to ground boundaries
-        newPosition.X = MathHelper.Clamp(newPosition.X, -halfSize + playerRadius, halfSize - playerRadius);
-        newPosition.Z = MathHelper.Clamp(newPosition.Z, -halfSize + playerRadius, halfSize - playerRadius);
+        newPosition.X = MathHelper.Clamp(newPosition.X, minBound, maxBound);
+        newPosition.Z = MathHelper.Clamp(newPosition.Z, minBound, maxBound);
 
         // Keep player above ground level (with small offset to prevent z-fighting)
         newPosition.Y = Math.Max(newPosition.Y, GROUND_Y + PLAYER_GROUND_OFFSET);
+
+        // Log when boundaries are hit
+        if (originalPosition != newPosition)
+        {
+            _logger.LogInformation($"[SERVER] Boundary constraint applied:");
+            _logger.LogInformation($"  Original: {originalPosition}");
+            _logger.LogInformation($"  Constrained: {newPosition}");
+            _logger.LogInformation($"  Bounds: X/Z ∈ [{minBound:F2}, {maxBound:F2}], Ground size: {GROUND_SIZE}");
+        }
 
         return newPosition;
     }

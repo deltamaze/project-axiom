@@ -125,11 +125,13 @@ public class TrainingGroundsState : GameState
 
         // Initialize player controller with starting position
         Vector3 startPosition = new Vector3(0, GeometryBuilder.GROUND_Y + PLAYER_GROUND_OFFSET, 0);
+        System.Diagnostics.Debug.WriteLine($"[INIT] Player start position: {startPosition}");
         _playerController = new PlayerController(_graphicsDevice, _character, startPosition);
         
         // Initialize client movement system if we have a server connection
         if (_serverManager != null)
         {
+            System.Diagnostics.Debug.WriteLine($"[INIT] Initializing client movement system with start position: {startPosition}");
             _clientMovementSystem = new ClientMovementSystem(_serverManager, startPosition);
             
             // Subscribe to server position updates
@@ -146,6 +148,7 @@ public class TrainingGroundsState : GameState
     /// </summary>
     private void OnServerPositionUpdate(PlayerPositionMessage positionUpdate)
     {
+        System.Diagnostics.Debug.WriteLine($"[SERVER UPDATE] Position: ({positionUpdate.X:F2}, {positionUpdate.Y:F2}, {positionUpdate.Z:F2})");
         if (_clientMovementSystem != null)
         {
             _clientMovementSystem.ReceiveServerUpdate(positionUpdate);
@@ -171,7 +174,9 @@ public class TrainingGroundsState : GameState
         _trainingDummies = new List<TrainingDummy>();
 
         // Get predefined positions from GeometryBuilder
-        Vector3[] dummyPositions = GeometryBuilder.GetTrainingDummyPositions();        // Create training dummies at each position
+        Vector3[] dummyPositions = GeometryBuilder.GetTrainingDummyPositions();
+
+        // Create training dummies at each position
         for (int i = 0; i < dummyPositions.Length; i++)
         {
             var dummy = new TrainingDummy(i, dummyPositions[i], $"Dummy {i + 1}");
@@ -179,6 +184,7 @@ public class TrainingGroundsState : GameState
         }
 
         System.Diagnostics.Debug.WriteLine($"Initialized {_trainingDummies.Count} training dummies");
+        System.Diagnostics.Debug.WriteLine($"Ground size: {GeometryBuilder.GROUND_SIZE}, Player movement bounds: ±{(GeometryBuilder.GROUND_SIZE / 2f) - 0.5f:F1}");
         foreach (var dummy in _trainingDummies)
         {
             System.Diagnostics.Debug.WriteLine($"  {dummy.Name} at position {dummy.Position}");

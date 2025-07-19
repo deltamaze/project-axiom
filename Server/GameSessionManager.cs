@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using project_axiom.Shared.Networking;
@@ -13,16 +14,26 @@ public class GameSessionManager
 {
     private readonly ILogger<GameSessionManager> _logger;
     private readonly PlayFabServerManager _playfabManager;
-    private readonly ConcurrentDictionary<string, ConnectedPlayer> _connectedPlayers = new();
+    private readonly ConcurrentDictionary<string, ConnectedPlayer> _connectedPlayers = new(); // Key: PlayFabId
+    private readonly ConcurrentDictionary<string, string> _endpointToPlayFabId = new(); // Key: "IP:Port", Value: PlayFabId
     private readonly ServerMovementSystem _movementSystem;
     private readonly object _gameStateLock = new();
     private bool _isRunning;
+    private UdpClient? _udpServer; // Add UDP server reference
     
     public GameSessionManager(ILoggerFactory loggerFactory, PlayFabServerManager playfabManager)
     {
         _logger = loggerFactory.CreateLogger<GameSessionManager>();
         _playfabManager = playfabManager;
         _movementSystem = new ServerMovementSystem(loggerFactory);
+    }
+
+    /// <summary>
+    /// Set the UDP server reference for sending messages to clients
+    /// </summary>
+    public void SetUdpServer(UdpClient udpServer)
+    {
+        _udpServer = udpServer;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -82,12 +93,24 @@ public class GameSessionManager
             using var document = JsonDocument.Parse(json);
             var messageType = document.RootElement.GetProperty("MessageType").GetString();
 
-            var playerKey = $"{clientEndpoint.Address}:{clientEndpoint.Port}";
-            if (!_connectedPlayers.TryGetValue(playerKey, out var connectedPlayer))
+            // Look up player by endpoint, and update endpoint if needed
+            var endpointKey = $"{clientEndpoint.Address}:{clientEndpoint.Port}";
+            
+            if (!_endpointToPlayFabId.TryGetValue(endpointKey, out var playFabId))
             {
                 _logger.LogWarning($"Received network message from unknown client: {clientEndpoint}");
                 return;
             }
+
+            if (!_connectedPlayers.TryGetValue(playFabId, out var connectedPlayer))
+            {
+                _logger.LogWarning($"Received network message for unknown player: {playFabId}");
+                return;
+            }
+
+            // Update the player's endpoint in case it changed
+            connectedPlayer.EndPoint = clientEndpoint;
+            connectedPlayer.LastHeartbeat = DateTime.UtcNow;
 
             switch (messageType)
             {
@@ -129,7 +152,7 @@ public class GameSessionManager
             }
 
             var playFabId = parts[1];
-            var playerKey = $"{clientEndpoint.Address}:{clientEndpoint.Port}";
+            var endpointKey = $"{clientEndpoint.Address}:{clientEndpoint.Port}";
 
             var player = new ConnectedPlayer
             {
@@ -139,12 +162,14 @@ public class GameSessionManager
                 LastHeartbeat = DateTime.UtcNow
             };
 
-            _connectedPlayers.TryAdd(playerKey, player);
+            // Store player by PlayFabId and create endpoint mapping
+            _connectedPlayers.TryAdd(playFabId, player);
+            _endpointToPlayFabId.TryAdd(endpointKey, playFabId);
             
             // Add player to movement system with default starting position
             var startPosition = new Vector3(0, 0.51f, 0); // Default spawn position
             _movementSystem.AddPlayer(playFabId, startPosition);
-            
+
             _logger.LogInformation($"Player connected: {playFabId} from {clientEndpoint}");
             
             // Notify PlayFab about the new player connection
@@ -158,9 +183,7 @@ public class GameSessionManager
         {
             _logger.LogError(ex, $"Error handling player connect from {clientEndpoint}");
         }
-    }
-
-    private async Task HandlePlayerDisconnect(IPEndPoint clientEndpoint, string message)
+    }    private async Task HandlePlayerDisconnect(IPEndPoint clientEndpoint, string message)
     {
         try
         {
@@ -217,10 +240,16 @@ public class GameSessionManager
     {
         try
         {
-            // This would be implemented with the actual UDP socket
-            // For now, just log what we would send
-            _logger.LogDebug($"Sending to {clientEndpoint}: {message}");
-            await Task.CompletedTask;
+            if (_udpServer != null)
+            {
+                var data = Encoding.UTF8.GetBytes(message);
+                await _udpServer.SendAsync(data, data.Length, clientEndpoint);
+                _logger.LogDebug($"Sent to {clientEndpoint}: {message}");
+            }
+            else
+            {
+                _logger.LogWarning($"Cannot send message - UDP server not set: {message}");
+            }
         }
         catch (Exception ex)
         {
@@ -232,10 +261,15 @@ public class GameSessionManager
     {
         try
         {
-            // This would be implemented with the actual UDP socket
-            // For now, just log what we would send
-            _logger.LogDebug($"Sending {data.Length} bytes to {clientEndpoint}");
-            await Task.CompletedTask;
+            if (_udpServer != null)
+            {
+                await _udpServer.SendAsync(data, data.Length, clientEndpoint);
+                _logger.LogDebug($"Sent {data.Length} bytes to {clientEndpoint}");
+            }
+            else
+            {
+                _logger.LogWarning($"Cannot send data - UDP server not set");
+            }
         }
         catch (Exception ex)
         {
