@@ -26,10 +26,14 @@
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*" />
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
     <PackageReference Include="PlayFabAllSDK" Version="1.198.250328" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
   </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\Shared\project-axiom-sharelib.csproj" />
+    <ProjectReference Include="..\Server\project-axiom-server.csproj" />
   </ItemGroup>
    <!-- <ItemGroup>
     <Compile Include="GameStates\GameState.cs" />

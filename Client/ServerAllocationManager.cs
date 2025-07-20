@@ -19,6 +19,8 @@ public class ServerAllocationManager
     private bool _isConnected;
     private bool _isListening;
     private CancellationTokenSource _listeningCancellation;
+    private static LocalDevServer _localDevServer;
+    private readonly bool _useLocalDevServer;
     
     public string ServerIP { get; private set; }
     public int ServerPort { get; private set; }
@@ -32,6 +34,9 @@ public class ServerAllocationManager
 
     public ServerAllocationManager()
     {
+        // Use the centralized development configuration
+        _useLocalDevServer = DevConfig.UseLocalDevServer;
+        
         // Simple initialization without logging for now
     }
 
@@ -48,6 +53,15 @@ public class ServerAllocationManager
             // Check if we're in local development mode
             if (IsLocalDevelopmentMode())
             {
+                // Auto-start local server if enabled
+                if (_useLocalDevServer)
+                {
+                    Console.WriteLine("[LOCAL DEV] Starting/ensuring local server is running...");
+                    await StartLocalDevServerAsync();
+                    Console.WriteLine("[LOCAL DEV] Waiting for server to be ready...");
+                    await Task.Delay(3000); // Give server time to start
+                }
+
                 return await ConnectToLocalServerAsync();
             }
 
@@ -109,9 +123,69 @@ public class ServerAllocationManager
     /// </summary>
     private bool IsLocalDevelopmentMode()
     {
-        // For now, always use local mode during development
-        // You can change this logic later to check environment variables or config files
-        return true;
+        // Check environment variable or use local mode for development
+        return _useLocalDevServer;
+    }
+
+    /// <summary>
+    /// Check if local server is already running
+    /// </summary>
+    private bool IsLocalServerRunning()
+    {
+        try
+        {
+            Console.WriteLine($"[LOCAL DEV] Checking if server is running on {DevConfig.LocalServerIP}:{DevConfig.LocalServerPort}...");
+            
+            using var client = new UdpClient();
+            client.Client.ReceiveTimeout = 1000; // 1 second timeout
+            
+            var endpoint = new IPEndPoint(IPAddress.Parse(DevConfig.LocalServerIP), DevConfig.LocalServerPort);
+            
+            // Try to send a ping message
+            var testData = System.Text.Encoding.UTF8.GetBytes("PING");
+            client.Send(testData, testData.Length, endpoint);
+            
+            Console.WriteLine("[LOCAL DEV] Ping sent, server appears reachable");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LOCAL DEV] Server not detected: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Start the local development server
+    /// </summary>
+    private async Task StartLocalDevServerAsync()
+    {
+        try
+        {
+            Console.WriteLine("[LOCAL DEV] Initializing local server instance...");
+            
+            if (_localDevServer == null)
+            {
+                _localDevServer = new LocalDevServer();
+            }
+            
+            if (!_localDevServer.IsRunning)
+            {
+                Console.WriteLine("[LOCAL DEV] Starting server...");
+                await _localDevServer.StartAsync();
+                Console.WriteLine("[LOCAL DEV] Server startup completed");
+            }
+            else
+            {
+                Console.WriteLine("[LOCAL DEV] Server already running");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LOCAL DEV] Error starting local server: {ex.Message}");
+            Console.WriteLine($"[LOCAL DEV] Stack trace: {ex.StackTrace}");
+            throw;
+        }
     }
 
     /// <summary>
@@ -123,8 +197,8 @@ public class ServerAllocationManager
         {
             Console.WriteLine("Connecting to local development server...");
             
-            ServerIP = "127.0.0.1";
-            ServerPort = 7777; // Default port from our server configuration
+            ServerIP = DevConfig.LocalServerIP;
+            ServerPort = DevConfig.LocalServerPort;
             SessionId = $"local_session_{Guid.NewGuid():N}";
 
             return await ConnectToServerAsync();
@@ -323,5 +397,11 @@ public class ServerAllocationManager
     public void Dispose()
     {
         Disconnect();
+        
+        // Clean up local dev server
+        if (_localDevServer != null)
+        {
+            _localDevServer.StopAsync().Wait(5000); // Wait up to 5 seconds for shutdown
+        }
     }
 }

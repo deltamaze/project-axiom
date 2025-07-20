@@ -4,11 +4,23 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-      {
-        "name": "C#: project_axiom Debug",
-        "type": "dotnet",
-        "request": "launch",
-        "projectPath": "${workspaceFolder}/Client/project-axiom.csproj"
-      }
-    ],
-  }
+        {
+            "name": "Debug Client + Server (Local Dev)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Client/project-axiom.csproj"
+        },
+        {
+            "name": "Debug Server Only",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Server/project-axiom-server.csproj"
+        },
+        {
+            "name": "C#: project_axiom Debug (Legacy)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Client/project-axiom.csproj"
+        }
+    ]
+}
